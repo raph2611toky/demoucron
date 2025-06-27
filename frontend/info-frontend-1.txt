@@ -1,0 +1,4021 @@
+D:\...\frontend> ls
+
+
+    Répertoire : D:\TOKY\PROJET\Recherche operationnel\demoucron\frontend
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         6/23/2025   3:09 PM                node_modules
+d-----         6/23/2025  11:45 AM                public
+d-----         4/27/2025   5:56 PM                src
+-a----         4/27/2025   5:10 PM            253 .gitignore
+-a----         6/23/2025  12:55 PM            932 eslint.config.js
+-a----         4/27/2025   6:03 PM            548 index.html
+-a----         6/27/2025   9:51 AM          74609 info-frontend-1.txt
+-a----         6/27/2025   9:49 AM         178143 package-lock.json
+-a----         6/23/2025   3:09 PM           1249 package.json
+-a----         4/27/2025   5:10 PM            856 README.md
+-a----         6/23/2025   1:49 PM            193 vite.config.js
+
+
+D:\...\frontend> tree /F .\src\
+Structure du dossier pour le volume Stockage
+Le numéro de série du volume est 0616-3CC8
+D:\TOKY\PROJET\RECHERCHE OPERATIONNEL\DEMOUCRON\FRONTEND\SRC
+│   App.jsx
+│   index.jsx
+│   styles.css
+│
+├───assets
+│       react.svg
+│
+└───components
+        GraphEditor.jsx
+        GraphVisualizer.jsx
+        Header.jsx
+        MatrixInput.jsx
+        ResultsDisplay.jsx
+        WijGraph.jsx
+
+D:\...\frontend> cat .\src\App.jsx
+import { useState, useCallback, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
+import Header from "./components/Header.jsx";
+import GraphEditor from "./components/GraphEditor.jsx";
+import MatrixInput from "./components/MatrixInput.jsx";
+import GraphVisualizer from "./components/GraphVisualizer.jsx";
+import ResultsDisplay from "./components/ResultsDisplay.jsx";
+import "./styles.css";
+
+function App() {
+  const [mode, setMode] = useState("graph");
+  const [theme, setTheme] = useState("light");
+  const [visualizationData, setVisualizationData] = useState({
+    nodes: [],
+    edges: [],
+    node_names: [],
+    initial_matrix: []
+  });
+  const [calculationData, setCalculationData] = useState(null);
+  const [results, setResults] = useState(null);
+  const [method, setMethod] = useState("min");
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    setVisualizationData({ nodes: [], edges: [], node_names: [], initial_matrix: [] });
+    setCalculationData(null);
+    setResults(null);
+  }, [mode]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme(theme === "light" ? "dark" : "light");
+  }, [theme]);
+
+  const handleGraphUpdate = useCallback((data) => {
+    setVisualizationData({
+      nodes: data.nodes || [],
+      edges: data.edges || [],
+      node_names: data.node_names || [],
+      initial_matrix: data.initial_matrix || []
+    });
+    setCalculationData({ type: "graph", graphId: data.graphId });
+  }, []);
+
+  const handleMatrixUpdate = useCallback((data) => {
+    if (data) {
+      const { matrix, node_names } = data;
+      const nodes = node_names.map((name, index) => ({ id: index, name, type: "normal" }));
+      const edges = [];
+      for (let i = 0; i < matrix.length; i++) {
+        for (let j = 0; j < matrix[i].length; j++) {
+          if (matrix[i][j] !== null && i !== j) {
+            edges.push({ source: node_names[i], target: node_names[j], weight: matrix[i][j] });
+          }
+        }
+      }
+      setVisualizationData({ nodes, edges, node_names, initial_matrix: matrix });
+      setCalculationData({ type: "matrix", matrix, node_names });
+    } else {
+      setVisualizationData({ nodes: [], edges: [], node_names: [], initial_matrix: [] });
+      setCalculationData(null);
+    }
+  }, []);
+
+  const handleCalculate = async () => {
+    if (!calculationData) return;
+    setIsCalculating(true);
+    try {
+      let response;
+      if (calculationData.type === "graph" && calculationData.graphId) {
+        response = await axios.get(`http://localhost:8000/api/graphs/${calculationData.graphId}/run_demoucron/?mode=${method}`);
+      } else if (calculationData.type === "matrix" && calculationData.matrix) {
+        response = await axios.post("http://localhost:8000/api/matrix_demoucron/", {
+          matrix: calculationData.matrix,
+          node_names: calculationData.node_names,
+          method: method
+        });
+      }
+      setResults(response.data);
+    } catch (error) {
+      console.error("Calculation error:", error);
+      setResults({ error: "Erreur lors du calcul" });
+    } finally {
+      setIsCalculating(false);
+    }
+  };
+
+  const canCalculate = calculationData && (calculationData.type === "graph" ? calculationData.graphId : calculationData.matrix && calculationData.matrix.length > 0);
+
+  return (
+    <div className="app-container">
+      <Header theme={theme} toggleTheme={toggleTheme} />
+
+      <main className="main-content">
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="hero-section"
+        >
+          <div className="hero-background">
+            <div className="hero-gradient"></div>
+            <div className="hero-pattern"></div>
+          </div>
+          <div className="hero-content">
+            <motion.h1
+              className="hero-title"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              Algorithme de Demoucron
+            </motion.h1>
+            <motion.p
+              className="hero-description"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              DÃ©couvrez les chemins optimaux avec une interface moderne et intuitive.
+              CrÃ©ez votre graphe ou saisissez une matrice pour commencer l'analyse.
+            </motion.p>
+            <motion.div
+              className="hero-stats"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              <div className="stat-item">
+                <div className="stat-number">âˆž</div>
+                <div className="stat-label">PossibilitÃ©s</div>
+              </div>
+              <div className="stat-item">
+                <div className="stat-number">O(nÂ³)</div>
+                <div className="stat-label">ComplexitÃ©</div>
+              </div>
+              <div className="stat-item">
+                <div className="stat-number">2</div>
+                <div className="stat-label">Modes</div>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mode-selector-container"
+        >
+          <div className="mode-selector">
+            <motion.button
+              onClick={() => setMode("graph")}
+              className={`mode-btn ${mode === "graph" ? "active" : ""}`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <svg className="mode-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v4a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a1 1 0 01-1-1V9a1 1 0 011-1h1a2 2 0 100-4H4a1 1 0 01-1-1V4a1 1 0 011-1h3a1 1 0 001-1v-1a2 2 0 114 0z" />
+              </svg>
+              <span>Ã‰diteur de Graphe</span>
+              <div className="mode-badge">Interactif</div>
+            </motion.button>
+            <motion.button
+              onClick={() => setMode("matrix")}
+              className={`mode-btn ${mode === "matrix" ? "active" : ""}`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <svg className="mode-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <span>EntrÃ©e Matricielle</span>
+              <div className="mode-badge">PrÃ©cis</div>
+            </motion.button>
+          </div>
+        </motion.div>
+
+        <div className="workspace-grid">
+          <AnimatePresence mode="wait">
+            {mode === "graph" && (
+              <motion.div
+                key="graph-editor"
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.5 }}
+                className="workspace-panel"
+              >
+                <GraphEditor onUpdate={handleGraphUpdate} theme={theme} />
+              </motion.div>
+            )}
+            {mode === "matrix" && (
+              <motion.div
+                key="matrix-input"
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.5 }}
+                className="workspace-panel"
+              >
+                <MatrixInput onMatrixUpdate={handleMatrixUpdate} theme={theme} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="workspace-panel"
+          >
+            <GraphVisualizer
+              nodes={visualizationData.nodes}
+              edges={visualizationData.edges}
+              theme={theme}
+              nodeNames={visualizationData.node_names}
+              initialMatrix={visualizationData.initial_matrix}
+            />
+          </motion.div>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="calculation-panel"
+        >
+          <div className="calculation-header">
+            <div className="calculation-title">
+              <svg className="calculation-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <div>
+                <h3>Configuration du Calcul</h3>
+                <p>Choisissez votre mÃ©thode d'optimisation</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="method-selection">
+            <div className="method-options">
+              <motion.label
+                className={`method-option ${method === "min" ? "selected" : ""}`}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <input
+                  type="radio"
+                  value="min"
+                  checked={method === "min"}
+                  onChange={() => setMethod("min")}
+                  className="method-radio"
+                />
+                <div className="method-content">
+                  <div className="method-icon min">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
+                  </div>
+                  <div className="method-info">
+                    <span className="method-name">Minimisation</span>
+                    <span className="method-desc">Trouve le chemin le plus court</span>
+                  </div>
+                </div>
+                <div className="method-indicator"></div>
+              </motion.label>
+
+              <motion.label
+                className={`method-option ${method === "max" ? "selected" : ""}`}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <input
+                  type="radio"
+                  value="max"
+                  checked={method === "max"}
+                  onChange={() => setMethod("max")}
+                  className="method-radio"
+                />
+                <div className="method-content">
+                  <div className="method-icon max">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                    </svg>
+                  </div>
+                  <div className="method-info">
+                    <span className="method-name">Maximisation</span>
+                    <span className="method-desc">Trouve le chemin le plus long</span>
+                  </div>
+                </div>
+                <div className="method-indicator"></div>
+              </motion.label>
+            </div>
+
+            <motion.button
+              onClick={handleCalculate}
+              disabled={!canCalculate || isCalculating}
+              whileHover={{ scale: canCalculate && !isCalculating ? 1.02 : 1 }}
+              whileTap={{ scale: canCalculate && !isCalculating ? 0.98 : 1 }}
+              className="calculate-btn"
+            >
+              <AnimatePresence mode="wait">
+                {isCalculating ? (
+                  <motion.div
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="btn-content"
+                  >
+                    <div className="loading-spinner"></div>
+                    <span>Calcul en cours...</span>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="calculate"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="btn-content"
+                  >
+                    <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span>Calculer les Chemins Optimaux</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          </div>
+        </motion.div>
+
+        <AnimatePresence>
+          {results && (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              transition={{ duration: 0.6 }}
+              className="results-container"
+            >
+              <ResultsDisplay
+                results={results}
+                theme={theme}
+                nodes={visualizationData.nodes}
+                edges={visualizationData.edges}
+                nodeNames={visualizationData.node_names}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+    </div>
+  );
+}
+
+export default App;
+D:\...\frontend> cat .\src\index.jsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.jsx";
+import "./styles.css";
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+D:\...\frontend> 
+D:\...\frontend> cat .\src\components\GraphEditor.jsx
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
+
+function GraphEditor({ onUpdate, theme }) {
+  const [graphId, setGraphId] = useState(null);
+  const [graphName, setGraphName] = useState("");
+  const [graphs, setGraphs] = useState([]);
+  const [selectedGraph, setSelectedGraph] = useState("");
+  const [nodes, setNodes] = useState([]);
+  const [edges, setEdges] = useState([]);
+  const [nodeName, setNodeName] = useState("");
+  const [nodeType, setNodeType] = useState("normal");
+  const [source, setSource] = useState("");
+  const [target, setTarget] = useState("");
+  const [weight, setWeight] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({ show: false, message: "", type: "success" });
+
+  const loadGraphs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get("http://localhost:8000/api/graphs/");
+      setGraphs(response.data);
+    } catch (error) {
+      setNotification({ show: true, message: `Erreur de connexion: ${error.message}`, type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadGraphs();
+  }, [loadGraphs]);
+
+  const loadGraphDetails = useCallback(async (graphId) => {
+    if (!graphId) {
+      setGraphId(null);
+      setNodes([]);
+      setEdges([]);
+      onUpdate({ nodes: [], edges: [], node_names: [], initial_matrix: [], graphId: null });
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await axios.get(`http://localhost:8000/api/graphs/${graphId}/`);
+      const data = response.data;
+      setGraphId(data.id);
+      setNodes(data.sommets || []);
+      setEdges(data.arcs || []);
+      setNotification({ show: true, message: `Graphe '${data.name}' chargÃ© avec succÃ¨s`, type: "success" });
+      onUpdate({
+        nodes: data.sommets || [],
+        edges: data.arcs || [],
+        node_names: data.node_names || [],
+        initial_matrix: data.initial_matrix || [],
+        graphId: data.id
+      });
+    } catch (error) {
+      setNotification({ show: true, message: `Erreur de connexion: ${error.message}`, type: "error" });
+      onUpdate({ error: "Erreur lors du chargement du graphe" });
+    } finally {
+      setLoading(false);
+    }
+  }, [onUpdate]);
+
+  useEffect(() => {
+    loadGraphDetails(selectedGraph);
+  }, [selectedGraph, loadGraphDetails]);
+
+  const createGraph = async () => {
+    if (!graphName) {
+      setNotification({ show: true, message: "Veuillez entrer un nom pour le graphe", type: "error" });
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await axios.post("http://localhost:8000/api/graphs/create/", { name: graphName });
+      const newGraph = response.data;
+      setGraphs((prevGraphs) => [...prevGraphs, newGraph]);
+      setSelectedGraph(String(newGraph.id));
+      setGraphName("");
+      setNotification({ show: true, message: `Graphe '${newGraph.name}' crÃ©Ã© avec succÃ¨s`, type: "success" });
+    } catch (error) {
+      setNotification({ show: true, message: `Erreur de connexion: ${error.message}`, type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addNode = async () => {
+    if (!nodeName) {
+      setNotification({ show: true, message: "Veuillez entrer un nom pour le sommet", type: "error" });
+      return;
+    }
+    if (!graphId) {
+      setNotification({ show: true, message: "Veuillez crÃ©er ou sÃ©lectionner un graphe d'abord", type: "error" });
+      return;
+    }
+    if (nodes.some((n) => n.name === nodeName)) {
+      setNotification({ show: true, message: `Le sommet '${nodeName}' existe dÃ©jÃ `, type: "error" });
+      return;
+    }
+    setLoading(true);
+    try {
+      await axios.post(`http://localhost:8000/api/graphs/${graphId}/add_sommet/`, { name: nodeName, type: nodeType });
+      await loadGraphDetails(graphId);
+      setNodeName("");
+      setNodeType("normal");
+      setNotification({ show: true, message: `Sommet '${nodeName}' ajoutÃ© avec succÃ¨s`, type: "success" });
+    } catch (error) {
+      setNotification({ show: true, message: `Erreur de connexion: ${error.message}`, type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addEdge = async () => {
+    if (!source || !target || !weight) {
+      setNotification({ show: true, message: "Veuillez remplir tous les champs pour l'arc", type: "error" });
+      return;
+    }
+    if (!graphId) {
+      setNotification({ show: true, message: "Veuillez crÃ©er ou sÃ©lectionner un graphe d'abord", type: "error" });
+      return;
+    }
+    if (source === target) {
+      setNotification({ show: true, message: "La source et la cible ne peuvent pas Ãªtre identiques", type: "error" });
+      return;
+    }
+    setLoading(true);
+    try {
+      await axios.post(`http://localhost:8000/api/graphs/${graphId}/add_arc/`, {
+        source,
+        target,
+        weight: Number.parseFloat(weight)
+      });
+      await loadGraphDetails(graphId);
+      setSource("");
+      setTarget("");
+      setWeight("");
+      setNotification({ show: true, message: `Arc de '${source}' Ã  '${target}' ajoutÃ© avec succÃ¨s`, type: "success" });
+    } catch (error) {
+      setNotification({ show: true, message: `Erreur de connexion: ${error.message}`, type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (notification.show) {
+      const timer = setTimeout(() => setNotification({ show: false, message: "", type: "success" }), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
+  const getNodeTypeIcon = (type) => {
+    switch (type) {
+      case "initial":
+        return <svg className="node-type-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2m4 7h6" /></svg>;
+      case "final":
+        return <svg className="node-type-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+      default:
+        return <svg className="node-type-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>;
+    }
+  };
+
+  return (
+    <div className="graph-editor">
+      <div className="panel-header">
+        <div className="panel-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v4a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a1 1 0 01-1-1V9a1 1 0 011-1h1a2 2 0 100-4H4a1 1 0 01-1-1V4a1 1 0 011-1h3a1 1 0 001-1v-1a2 2 0 114 0z" />
+          </svg>
+        </div>
+        <div className="panel-title">
+          <h2>Ã‰diteur de Graphe</h2>
+          <p>CrÃ©ez et modifiez votre graphe interactivement</p>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {notification.show && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+            className={`notification ${notification.type}`}
+          >
+            <div className="notification-icon">
+              {notification.type === "error" ? (
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ) : (
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /> 
+                </svg>
+              )}
+            </div>
+            <span>{notification.message}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="editor-sections">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="editor-section"
+        >
+          <div className="section-header">
+            <h3>Gestion du Graphe</h3>
+            <button onClick={loadGraphs} disabled={loading} className="refresh-btn">
+              <svg className={loading ? "spinning" : ""} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m0 0a8.001 8.001 0 0115.356 2m-15.356-2H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
+          <div className="form-grid">
+            <div className="form-group">
+              <label>SÃ©lectionner un graphe</label>
+              <select value={selectedGraph} onChange={(e) => setSelectedGraph(e.target.value)} className="form-select">
+                <option value="">Choisir un graphe existant</option>
+                {graphs.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Nouveau graphe</label>
+              <div className="input-group">
+                <input
+                  type="text"
+                  value={graphName}
+                  onChange={(e) => setGraphName(e.target.value)}
+                  placeholder="Nom du graphe"
+                  className="form-input"
+                />
+                <button onClick={createGraph} disabled={loading} className="btn btn-primary">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="editor-section"
+        >
+          <div className="section-header">
+            <h3>Ajouter un Sommet</h3>
+          </div>
+          <div className="form-grid">
+            <div className="form-group">
+              <label>Nom du sommet</label>
+              <input
+                type="text"
+                value={nodeName}
+                onChange={(e) => setNodeName(e.target.value)}
+                placeholder="Ex: A, B, C..."
+                className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <label>Type de sommet</label>
+              <select value={nodeType} onChange={(e) => setNodeType(e.target.value)} className="form-select">
+                <option value="normal">Normal</option>
+                <option value="initial">Initial</option>
+                <option value="final">Final</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <button onClick={addNode} disabled={loading} className="btn btn-success full-width">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Ajouter Sommet
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="editor-section"
+        >
+          <div className="section-header">
+            <h3>Ajouter un Arc</h3>
+          </div>
+          <div className="form-grid">
+            <div className="form-group">
+              <label>Source</label>
+              <select value={source} onChange={(e) => setSource(e.target.value)} className="form-select">
+                <option value="">Choisir</option>
+                {nodes.map((n) => <option key={n.id} value={n.name}>{n.name}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Cible</label>
+              <select value={target} onChange={(e) => setTarget(e.target.value)} className="form-select">
+                <option value="">Choisir</option>
+                {nodes.map((n) => <option key={n.id} value={n.name}>{n.name}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Poids</label>
+              <input
+                type="number"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                placeholder="0" 
+                className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <button onClick={addEdge} disabled={loading} className="btn btn-purple full-width">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 0 00-5.656 0l-4 4a4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 0 005.5 0l4-4a4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                Ajouter Arc
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="summary-section"
+        >
+          <div className="summary-grid">
+            <div className="summary-card">
+              <div className="summary-header">
+                <h4>Sommets ({nodes.length})</h4>
+              </div>
+              <div className="summary-content">
+                {nodes.length > 0 ? (
+                  <div className="node-list">
+                    {nodes.map((n) => (
+                      <div key={n.id} className={`node-item ${n.type}`}>
+                        {getNodeTypeIcon(n.type)}
+                        <span className="node-name">{n.name}</span>
+                        <span className="node-type">{n.type}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="empty-state">Aucun sommet ajoutÃ©</p>
+                )}
+              </div>
+            </div>
+
+            <div className="summary-card">
+              <div className="summary-header">
+                <h4>Arcs ({edges.length})</h4>
+              </div>
+              <div className="summary-content">
+                {edges.length > 0 ? (
+                  <div className="edge-list">
+                    {edges.map((e, index) => (
+                      <div key={index} className="edge-item">
+                        <span className="edge-source">{e.source}</span>
+                        <svg className="edge-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                        <span className="edge-target">{e.target}</span>
+                        <span className="edge-weight">({e.weight})</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="empty-state">Aucun arc ajoutÃ©</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+export default GraphEditor;
+D:\...\frontend> cat .\src\components\GraphVisualizer.jsx
+import { useMemo } from "react";
+import ReactFlow, { Background, Controls, MiniMap } from "reactflow";
+import "reactflow/dist/style.css";
+import { motion } from "framer-motion";
+
+const nodeTypes = {
+  custom: ({ data }) => (
+    <motion.div
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      whileHover={{ scale: 1.1 }}
+      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+      className="custom-node"
+      style={{
+        background: data.gradient,
+        boxShadow: data.shadow,
+      }}
+    >
+      <span className="node-label">{data.label}</span>
+      {data.type !== "normal" && (
+        <div className="node-indicator">
+          {data.type === "initial" ? "S" : "T"}
+        </div>
+      )}
+    </motion.div>
+  ),
+};
+
+function GraphVisualizer({ nodes, edges, theme, nodeNames, initialMatrix }) {
+  const themeConfig = {
+    light: {
+      background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+      nodeInitial: "linear-gradient(135deg, #10b981, #059669)",
+      nodeFinal: "linear-gradient(135deg, #ef4444, #dc2626)",
+      nodeNormal: "linear-gradient(135deg, #3b82f6, #2563eb)",
+      edgeColor: "#475569",
+      shadowInitial: "0 8px 25px rgba(16, 185, 129, 0.3)",
+      shadowFinal: "0 8px 25px rgba(239, 68, 68, 0.3)",
+      shadowNormal: "0 8px 25px rgba(59, 130, 246, 0.3)",
+    },
+    dark: {
+      background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+      nodeInitial: "linear-gradient(135deg, #10b981, #059669)",
+      nodeFinal: "linear-gradient(135deg, #ef4444, #dc2626)",
+      nodeNormal: "linear-gradient(135deg, #3b82f6, #2563eb)",
+      edgeColor: "#94a3b8",
+      shadowInitial: "0 8px 25px rgba(16, 185, 129, 0.4)",
+      shadowFinal: "0 8px 25px rgba(239, 68, 68, 0.4)",
+      shadowNormal: "0 8px 25px rgba(59, 130, 246, 0.4)",
+    },
+  };
+
+  const currentTheme = themeConfig[theme] || themeConfig.light;
+
+  const normalizedNodes = useMemo(() => {
+    if (!nodes || nodes.length === 0) return [];
+    return nodes.map((n, index) => {
+      const nodeType = n.type || "normal";
+      return {
+        id: `${n.id || index}`,
+        type: "custom",
+        data: {
+          label: n.name,
+          type: nodeType,
+          gradient: nodeType === "initial" ? currentTheme.nodeInitial :
+                   nodeType === "final" ? currentTheme.nodeFinal :
+                   currentTheme.nodeNormal,
+          shadow: nodeType === "initial" ? currentTheme.shadowInitial :
+                  nodeType === "final" ? currentTheme.shadowFinal :
+                  currentTheme.shadowNormal,
+        },
+        position: {
+          x: 150 + (index % 4) * 200,
+          y: 150 + Math.floor(index / 4) * 150
+        },
+        draggable: true,
+      };
+    });
+  }, [nodes, currentTheme]);
+
+  const reactFlowEdges = useMemo(() => {
+    if (!edges || !nodes || edges.length === 0) return [];
+    return edges
+      .map((e, index) => {
+        const sourceNode = nodes.find((n) => n.name.toLowerCase() === e.source.toLowerCase());
+        const targetNode = nodes.find((n) => n.name.toLowerCase() === e.target.toLowerCase());
+        if (!sourceNode || !targetNode) return null;
+        if (!e.weight || isNaN(Number(e.weight))) return null;
+        return {
+          id: `e${index}`,
+          source: `${sourceNode.id || nodes.indexOf(sourceNode)}`,
+          target: `${targetNode.id || nodes.indexOf(targetNode)}`,
+          label: String(e.weight),
+          style: {
+            stroke: currentTheme.edgeColor,
+            strokeWidth: 3,
+            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))"
+          },
+          labelStyle: {
+            fill: currentTheme.edgeColor,
+            fontWeight: "600",
+            fontSize: "14px",
+            fontFamily: "Inter, sans-serif"
+          },
+          labelBgStyle: {
+            fill: theme === "light" ? "#ffffff" : "#1e293b",
+            fillOpacity: 0.9,
+            stroke: currentTheme.edgeColor,
+            strokeWidth: 1,
+            rx: 6,
+            ry: 6
+          },
+          type: "smoothstep",
+          markerEnd: {
+            type: "arrowclosed",
+            color: currentTheme.edgeColor,
+            width: 20,
+            height: 20
+          },
+        };
+      })
+      .filter((edge) => edge !== null);
+  }, [edges, nodes, currentTheme, theme]);
+
+  const renderInitialMatrix = () => {
+    if (!initialMatrix || initialMatrix.length === 0 || !nodeNames || nodeNames.length === 0) return null;
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="matrix-display"
+      >
+        <div className="matrix-header">
+          <h3>Matrice Initiale (Dâ‚)</h3>
+          <p>ReprÃ©sentation matricielle du graphe</p>
+        </div>
+        <div className="matrix-table-container">
+          <table className="display-matrix">
+            <thead>
+              <tr>
+                <th className="matrix-corner"></th>
+                {nodeNames.map((name, index) => (
+                  <th key={index} className="matrix-col-header">{name}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {initialMatrix.map((row, i) => (
+                <tr key={i}>
+                  <td className="matrix-row-header">{nodeNames[i]}</td>
+                  {row.map((value, j) => (
+                    <td key={j} className={`matrix-value ${i === j ? 'diagonal' : ''}`}>
+                      {value === null ? <span className="infinity">âˆž</span> : value}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
+    );
+  };
+
+  return (
+    <div className="graph-visualizer">
+      <div className="panel-header">
+        <div className="panel-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+        </div>
+        <div className="panel-title">
+          <h2>Visualisation Interactive</h2>
+          <p>ReprÃ©sentation graphique de votre rÃ©seau</p>
+        </div>
+      </div>
+
+      {normalizedNodes.length === 0 && reactFlowEdges.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="empty-visualization"
+        >
+          <div className="empty-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+          <h3>Aucun graphe Ã  visualiser</h3>
+          <p>CrÃ©ez ou sÃ©lectionnez un graphe pour voir sa reprÃ©sentation</p>
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="visualization-content"
+        >
+          <div
+            className="react-flow-container"
+            style={{ background: currentTheme.background }}
+          >
+            <ReactFlow
+              nodes={normalizedNodes}
+              edges={reactFlowEdges}
+              nodeTypes={nodeTypes}
+              fitView
+              fitViewOptions={{ padding: 0.3 }}
+              nodesDraggable={true}
+              className="react-flow-custom"
+            >
+              <Background
+                color={theme === "light" ? "#e2e8f0" : "#334155"}
+                gap={20}
+                size={1}
+                variant="dots"
+              />
+              <Controls className="react-flow-controls" />
+              <MiniMap
+                className="react-flow-minimap"
+                nodeColor={(node) => {
+                  const nodeData = normalizedNodes.find(n => n.id === node.id);
+                  return nodeData?.data.gradient || currentTheme.nodeNormal;
+                }}
+              />
+            </ReactFlow>
+          </div>
+
+          <div className="legend">
+            <div className="legend-item">
+              <div className="legend-node initial"></div>
+              <span>Sommet Initial</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-node normal"></div>
+              <span>Sommet Normal</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-node final"></div>
+              <span>Sommet Final</span>
+            </div>
+          </div>
+
+          {renderInitialMatrix()}
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+export default GraphVisualizer;
+D:\...\frontend> cat .\src\components\Header.jsx
+import { motion, AnimatePresence } from "framer-motion";
+
+function Header({ theme, toggleTheme }) {
+  return (
+    <motion.header
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="header"
+    >
+      <div className="header-content">
+        <motion.div
+          className="logo-container"
+          whileHover={{ scale: 1.02 }}
+          transition={{ type: "spring", stiffness: 400, damping: 10 }}
+        >
+          <div className="logo-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <motion.div
+              className="logo-pulse"
+              animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
+              transition={{ duration: 3, repeat: Infinity }}
+            />
+          </div>
+          <div className="logo-text">
+            <h1>Demoucron</h1>
+            <p>Recherche OpÃ©rationnelle</p>
+          </div>
+        </motion.div>
+
+        <div className="header-actions">
+          <motion.button
+            onClick={toggleTheme}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="theme-toggle"
+          >
+            <AnimatePresence mode="wait">
+              {theme === "light" ? (
+                <motion.div
+                  key="dark"
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="theme-icon"
+                >
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="light"
+                  initial={{ rotate: 90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: -90, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="theme-icon"
+                >
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        </div>
+      </div>
+    </motion.header>
+  );
+}
+
+export default Header;
+D:\...\frontend> cat .\src\components\WijGraph.jsx
+import { useEffect, useState } from "react";
+import ReactFlow, { Controls, Background } from "reactflow";
+import "reactflow/dist/style.css";
+import { motion } from "framer-motion";
+
+function WijGraph({ W, k, currentMatrix, stepIndex, nodes, nodeNames }) {
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const generateWijGraph = (W, k, currentMatrix, nodes, nodeNames) => {
+    const rfNodes = [];
+    const rfEdges = [];
+    const uniqueNodes = new Set();
+    const uniqueEdges = new Set();
+
+    const kNodeId = `node-${k - 1}`;
+    uniqueNodes.add(kNodeId);
+
+    W.forEach(({ i, j }) => {
+      uniqueNodes.add(`node-${i - 1}`);
+      uniqueNodes.add(`node-${j - 1}`);
+
+      const iIdx = i - 1;
+      const jIdx = j - 1;
+      const kIdx = k - 1;
+
+      const edgeIkId = `edge-${iIdx}-${kIdx}-${stepIndex}`;
+      if (!uniqueEdges.has(edgeIkId)) {
+        uniqueEdges.add(edgeIkId);
+        const weightIk = currentMatrix[iIdx][kIdx];
+        if (weightIk !== null) {
+          rfEdges.push({
+            id: edgeIkId,
+            source: `node-${iIdx}`,
+            target: `node-${kIdx}`,
+            label: `${weightIk}`,
+            animated: isAnimating,
+            style: { stroke: "#3b82f6", strokeWidth: 3 },
+            labelStyle: {
+              fill: "#3b82f6",
+              fontWeight: "600",
+              fontSize: "12px",
+              fontFamily: "Inter, sans-serif"
+            },
+            labelBgStyle: {
+              fill: "white",
+              fillOpacity: 0.9,
+              stroke: "#3b82f6",
+              strokeWidth: 1,
+              rx: 4,
+              ry: 4
+            }
+          });
+        }
+      }
+
+      const edgeKjId = `edge-${kIdx}-${jIdx}-${stepIndex}`;
+      if (!uniqueEdges.has(edgeKjId)) {
+        uniqueEdges.add(edgeKjId);
+        const weightKj = currentMatrix[kIdx][jIdx];
+        if (weightKj !== null) {
+          rfEdges.push({
+            id: edgeKjId,
+            source: `node-${kIdx}`,
+            target: `node-${jIdx}`,
+            label: `${weightKj}`,
+            animated: isAnimating,
+            style: { stroke: "#06b6d4", strokeWidth: 3 },
+            labelStyle: {
+              fill: "#06b6d4",
+              fontWeight: "600",
+              fontSize: "12px",
+              fontFamily: "Inter, sans-serif"
+            },
+            labelBgStyle: {
+              fill: "white",
+              fillOpacity: 0.9,
+              stroke: "#06b6d4",
+              strokeWidth: 1,
+              rx: 4,
+              ry: 4
+            }
+          });
+        }
+      }
+    });
+
+    uniqueNodes.forEach((nodeId) => {
+      const nodeIndex = Number.parseInt(nodeId.split("-")[1]);
+      const node = nodes.find((n) => n.name === nodeNames[nodeIndex]);
+      const isKNode = nodeId === kNodeId;
+      rfNodes.push({
+        id: nodeId,
+        data: { label: node?.name || nodeNames[nodeIndex] },
+        position: { x: nodeIndex * 120 + 50, y: isKNode ? 50 : 150 },
+        style: isKNode
+          ? {
+              background: "linear-gradient(135deg, #f59e0b, #f97316)",
+              color: "white",
+              borderRadius: "50%",
+              width: "50px",
+              height: "50px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: "bold",
+              fontSize: "16px",
+              boxShadow: "0 8px 25px rgba(245, 158, 11, 0.4)",
+              border: "3px solid #fbbf24"
+            }
+          : {
+              background: "linear-gradient(135deg, #3b82f6, #06b6d4)",
+              color: "white",
+              borderRadius: "50%",
+              width: "45px",
+              height: "45px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: "bold",
+              fontSize: "14px",
+              boxShadow: "0 6px 20px rgba(59, 130, 246, 0.3)"
+            },
+      });
+    });
+
+    return { nodes: rfNodes, edges: rfEdges };
+  };
+
+  const { nodes: initialNodes, edges: initialEdges } = generateWijGraph(W, k, currentMatrix, nodes, nodeNames);
+  const [rfNodes, setNodes] = useState(initialNodes);
+  const [rfEdges, setEdges] = useState(initialEdges);
+
+  useEffect(() => {
+    const { nodes: newNodes, edges: newEdges } = generateWijGraph(W, k, currentMatrix, nodes, nodeNames);
+    setNodes(newNodes);
+    setEdges(newEdges);
+  }, [W, k, currentMatrix, nodes, nodeNames, isAnimating]);
+
+  return (
+    <div className="wij-graph">
+      {rfNodes.length > 0 ? (
+        <div className="wij-container">
+          <ReactFlow
+            nodes={rfNodes}
+            edges={rfEdges}
+            fitView
+            fitViewOptions={{ padding: 0.2 }}
+          >
+            <Background color="#f0f0f0" gap={16} size={1} variant="dots" />
+            <Controls />
+          </ReactFlow>
+          <motion.button
+            onClick={() => setIsAnimating(!isAnimating)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="animation-toggle"
+          >
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isAnimating ? "M10 9v6m4-6v6" : "M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15"} />
+            </svg>
+            {isAnimating ? "Pause" : "Animer"}
+          </motion.button>
+        </div>
+      ) : (
+        <div className="wij-empty">
+          <div className="empty-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 0 00-5.656 0l-4 4a4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 0 005.5 0l4-4a4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+          </div>
+          <p>Aucun chemin trouvÃ© pour cette Ã©tape</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default WijGraph;
+D:\...\frontend> cat .\src\components\MatrixInput.jsx
+import { useState } from "react";
+import { motion } from "framer-motion";
+
+function MatrixInput({ onMatrixUpdate, theme }) {
+  const [nbrMatrice, setNbrMatrice] = useState(0);
+  const [matrix, setMatrix] = useState([]);
+
+  const handleChange = (e) => {
+    const value = parseInt(e.target.value, 10);
+    setNbrMatrice(value);
+    if (value > 0) {
+      const newMatrix = Array(value).fill().map(() => Array(value).fill(null));
+      setMatrix(newMatrix);
+      const node_names = Array.from({ length: value }, (_, i) => (i + 1).toString());
+      onMatrixUpdate({ matrix: newMatrix, node_names });
+    } else {
+      setMatrix([]);
+      onMatrixUpdate(null);
+    }
+  };
+
+  const handleMatrixChange = (i, j, value) => {
+    const newValue = value === "" ? null : parseFloat(value);
+    const newMatrix = matrix.map((row, rowIndex) =>
+      rowIndex === i ? row.map((cell, colIndex) => (colIndex === j ? newValue : cell)) : row
+    );
+    setMatrix(newMatrix);
+    const node_names = Array.from({ length: nbrMatrice }, (_, i) => (i + 1).toString());
+    onMatrixUpdate({ matrix: newMatrix, node_names });
+  };
+
+  return (
+    <div className="matrix-input">
+      <div className="panel-header">
+        <div className="panel-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <div className="panel-title">
+          <h2>EntrÃ©e Matricielle</h2>
+          <p>Saisissez directement la matrice d'adjacence</p>
+        </div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="matrix-config"
+      >
+        <div className="form-group">
+          <label>Nombre de sommets</label>
+          <div className="size-selector">
+            <input
+              type="number"
+              value={nbrMatrice}
+              onChange={handleChange}
+              min="0"
+              max="10"
+              className="form-input size-input"
+            />
+            <div className="size-info">
+              <span>Matrice {nbrMatrice}Ã—{nbrMatrice}</span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {nbrMatrice > 0 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="matrix-container"
+        >
+          <div className="matrix-wrapper">
+            <table className="matrix-table">
+              <thead>
+                <tr>
+                  <th className="matrix-corner"></th>
+                  {Array.from({ length: nbrMatrice }, (_, i) => (
+                    <th key={i} className="matrix-header">{i + 1}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {matrix.map((row, i) => (
+                  <tr key={i}>
+                    <td className="matrix-header row-header">{i + 1}</td>
+                    {row.map((cell, j) => (
+                      <td key={j} className="matrix-cell">
+                        <input
+                          type="number"
+                          value={cell === null ? "" : cell}
+                          onChange={(e) => handleMatrixChange(i, j, e.target.value)}
+                          className="matrix-input"
+                          placeholder={i === j ? "0" : "âˆž"}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="matrix-legend">
+            <div className="legend-item">
+              <div className="legend-color diagonal"></div>
+              <span>Diagonale (distance Ã  soi-mÃªme)</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color infinity"></div>
+              <span>Vide = âˆž (pas de connexion directe)</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color value"></div>
+              <span>Valeur = distance/poids</span>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+export default MatrixInput;
+D:\...\frontend> cat .\src\components\ResultsDisplay.jsx
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import WijGraph from "./WijGraph";
+
+function MatrixDisplay({ matrix, nodeNames, title }) {
+  if (!matrix || !nodeNames) {
+    return <p className="empty-state">Matrice non disponible</p>;
+  }
+  
+  return (
+    <div className="matrix-display-container">
+      {title && <h4 className="matrix-title">{title}</h4>}
+      <div className="matrix-table-wrapper">
+        <table className="result-matrix">
+          <thead>
+            <tr>
+              <th className="matrix-corner"></th>
+              {nodeNames.map((name, index) => (
+                <th key={index} className="matrix-header">{name}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {matrix.map((row, i) => (
+              <tr key={i}>
+                <td className="matrix-row-header">{nodeNames[i]}</td>
+                {row.map((value, j) => (
+                  <td key={j} className={`matrix-cell ${i === j ? 'diagonal' : ''}`}>
+                    {value === null ? <span className="infinity">âˆž</span> : value}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function CalculationsDisplay({ calculations, methode }) {
+  if (!calculations || calculations.length === 0) {
+    return <p className="empty-state">Aucun calcul disponible</p>;
+  }
+
+  return (
+    <div className="calculations-grid">
+      <div className="calculation-section">
+        <h4 className="calculation-title">Calculs W (Chemins intermÃ©diaires)</h4>
+        <div className="calculation-list">
+          {calculations.map((calc, index) => (
+            <div key={index} className="calculation-item">
+              <div className="calculation-formula">
+                W<sub>{calc.i}{calc.j}</sub><sup>{calc.k - 1}</sup> =
+                V<sub>{calc.i}{calc.k}</sub> + V<sub>{calc.k}{calc.j}</sub>
+              </div>
+              <div className="calculation-values">
+                = {calc.V_ik ?? "âˆž"} + {calc.V_kj ?? "âˆž"} = {calc.W_ij ?? "âˆž"}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="calculation-section">
+        <h4 className="calculation-title">Calculs V (Optimisation)</h4>
+        <div className="calculation-list">
+          {calculations.map((calc, index) => (
+            <div key={index} className="calculation-item">
+              <div className="calculation-formula">
+                V<sub>{calc.i}{calc.j}</sub><sup>{calc.k}</sup> =
+                {methode === "min" ? "min" : "max"}(W<sub>{calc.i}{calc.j}</sub><sup>{calc.k - 1}</sup>, V<sub>{calc.i}{calc.j}</sub><sup>{calc.k - 1}</sup>)
+              </div>
+              <div className="calculation-values">
+                = {methode === "min" ? "min" : "max"}({calc.W_ij ?? "âˆž"}, {calc.V_ij_prev ?? "âˆž"}) = {calc.new_V_ij ?? "âˆž"}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResultsDisplay({ results, theme, nodes, nodeNames }) {
+  const [expandedSteps, setExpandedSteps] = useState({});
+  const [activeTab, setActiveTab] = useState("steps");
+
+  if (!results || results.error || !results.steps) {
+    const error = results?.error || "Aucun rÃ©sultat disponible";
+    return (
+      <div className="results-error">
+        <div className="error-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />   
+          </svg>
+        </div>
+        <h3>Erreur de calcul</h3>
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  const { steps, paths, methode } = results;
+  const initialNode = nodes.find((n) => n.type === "initial");
+  const finalNode = nodes.find((n) => n.type === "final");
+  const optimalPathKey = initialNode && finalNode ? `${initialNode.name}-${finalNode.name}` : null;
+  const optimalPath = optimalPathKey ? paths[optimalPathKey] : null;
+
+  const toggleStep = (index) => {
+    setExpandedSteps((prev) => ({ ...prev, [index]: !prev[index] }));
+  };
+
+  return (
+    <div className="results-display">
+      <div className="results-header">
+        <div className="results-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <div className="results-title">
+          <h2>RÃ©sultats de l'Algorithme</h2>
+          <p>Analyse complÃ¨te des chemins optimaux avec la mÃ©thode de {methode === "min" ? "minimisation" : "maximisation"}</p>
+        </div>
+      </div>
+
+      <div className="results-tabs">
+        <button
+          onClick={() => setActiveTab("steps")}
+          className={`tab-btn ${activeTab === "steps" ? "active" : ""}`}
+        >
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          Ã‰tapes de Calcul
+        </button>
+        <button
+          onClick={() => setActiveTab("final")}
+          className={`tab-btn ${activeTab === "final" ? "active" : ""}`}
+        >
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />       
+          </svg>
+          RÃ©sultat Final
+        </button>
+        <button
+          onClick={() => setActiveTab("paths")}
+          className={`tab-btn ${activeTab === "paths" ? "active" : ""}`}
+        >
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 0 00-5.656 0l-4 4a4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 0 005.5 0l4-4a4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+          Chemins Optimaux
+        </button>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {activeTab === "steps" && (
+          <motion.div
+            key="steps"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="tab-content"
+          >
+            <div className="steps-container">
+              {steps.map((step, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  className="step-card"
+                >
+                  <button
+                    onClick={() => toggleStep(index)}
+                    className="step-header"
+                  >
+                    <div className="step-info">
+                      <div className="step-number">{step.step}</div>
+                      <div className="step-details">
+                        <h4>Ã‰tape {step.step}</h4>
+                        <p>{step.intermediate_node ? `NÅ“ud intermÃ©diaire k = ${step.intermediate_node}` : "Matrice initiale"}</p>       
+                      </div>
+                    </div>
+                    <div className={`step-toggle ${expandedSteps[index] ? "expanded" : ""}`}>
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </button>
+
+                  <AnimatePresence>
+                    {expandedSteps[index] && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="step-content"
+                      >
+                        <div className="step-grid">
+                          <div className="step-matrix">
+                            <MatrixDisplay
+                              matrix={step.matrix}
+                              nodeNames={nodeNames}
+                              title={`Matrice D${step.step}`}
+                            />
+                          </div>
+                          <div className="step-graph">
+                            <h5>Graphe W{step.intermediate_node}</h5>
+                            <WijGraph
+                              W={step.calculations || []}
+                              k={step.intermediate_node}
+                              currentMatrix={step.matrix}
+                              stepIndex={index}
+                              nodes={nodes}
+                              nodeNames={nodeNames}
+                            />
+                          </div>
+                        </div>
+                        <CalculationsDisplay calculations={step.calculations} methode={methode} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === "final" && (
+          <motion.div
+            key="final"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="tab-content"
+          >
+            <div className="final-result">
+              <div className="final-header">
+                <h3>Matrice Finale</h3>
+                <p>RÃ©sultat aprÃ¨s application complÃ¨te de l'algorithme de Demoucron</p>
+              </div>
+              <MatrixDisplay
+                matrix={steps[steps.length - 1]?.matrix}
+                nodeNames={nodeNames}
+              />
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === "paths" && (
+          <motion.div
+            key="paths"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="tab-content"
+          >
+            <div className="paths-result">
+              <div className="paths-header">
+                <h3>Chemins Optimaux</h3>
+                <p>Meilleurs chemins trouvÃ©s selon la mÃ©thode de {methode === "min" ? "minimisation" : "maximisation"}</p>
+              </div>
+              {optimalPath ? (
+                <div className="optimal-path">
+                  <div className="path-card">
+                    <div className="path-info">
+                      <div className="path-nodes">
+                        <span className="path-start">{initialNode.name}</span>
+                        <svg className="path-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                        <span className="path-end">{finalNode.name}</span>
+                      </div>
+                      <div className="path-sequence">
+                        {optimalPath.map((node, index) => (
+                          <React.Fragment key={index}>
+                            <span className="path-node">{node}</span>
+                            {index < optimalPath.length - 1 && (
+                              <svg className="path-connector" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="no-path">
+                  <div className="no-path-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <h4>Aucun chemin optimal trouvÃ©</h4>
+                  <p>VÃ©rifiez que vous avez dÃ©fini des sommets initial et final</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+export default ResultsDisplay;
+D:\...\frontend> cat .\src\styles.css
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap");
+
+:root {
+  /* Colors */
+  --primary-50: #eff6ff;
+  --primary-100: #dbeafe;
+  --primary-500: #3b82f6;
+  --primary-600: #2563eb;
+  --primary-700: #1d4ed8;
+  
+  --secondary-500: #8b5cf6;
+  --secondary-600: #7c3aed;
+  
+  --success-500: #10b981;
+  --success-600: #059669;
+  
+  --danger-500: #ef4444;
+  --danger-600: #dc2626;
+  
+  --warning-500: #f59e0b;
+  --warning-600: #d97706;
+  
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+  
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  
+  /* Border radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease-out;
+  --transition-normal: 0.3s ease-out;
+  --transition-slow: 0.5s ease-out;
+}
+
+.dark {
+  --gray-50: #1e293b;
+  --gray-100: #334155;
+  --gray-200: #475569;
+  --gray-300: #64748b;
+  --gray-400: #94a3b8;
+  --gray-500: #cbd5e1;
+  --gray-600: #e2e8f0;
+  --gray-700: #f1f5f9;
+  --gray-800: #f8fafc;
+  --gray-900: #ffffff;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  color: var(--gray-900);
+  background: var(--gray-50);
+  transition: all var(--transition-normal);
+}
+
+.dark body {
+  color: var(--gray-100);
+  background: var(--gray-900);
+}
+
+/* App Container */
+.app-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #dbeafe 100%);
+  transition: all var(--transition-slow);
+}
+
+.dark .app-container {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #1e3a8a 100%);
+}
+
+/* Header */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid var(--gray-200);
+  transition: all var(--transition-normal);
+}
+
+.dark .header {
+  background: rgba(15, 23, 42, 0.8);
+  border-bottom-color: var(--gray-700);
+}
+
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  cursor: pointer;
+}
+
+.logo-icon {
+  position: relative;
+  width: 3.5rem;
+  height: 3.5rem;
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.logo-icon svg {
+  width: 2rem;
+  height: 2rem;
+  color: white;
+  z-index: 2;
+}
+
+.logo-pulse {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--primary-400), var(--secondary-400));
+  border-radius: var(--radius-xl);
+  opacity: 0.5;
+}
+
+.logo-text h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary-600), var(--secondary-600));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
+.logo-text p {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  margin: 0;
+  font-weight: 500;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--gray-600);
+}
+
+.dark .theme-toggle {
+  background: var(--gray-800);
+  border-color: var(--gray-700);
+  color: var(--gray-400);
+}
+
+.theme-toggle:hover {
+  background: var(--gray-200);
+  border-color: var(--gray-300);
+  transform: translateY(-1px);
+}
+
+.dark .theme-toggle:hover {
+  background: var(--gray-700);
+  border-color: var(--gray-600);
+}
+
+.theme-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Main Content */
+.main-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+/* Hero Section */
+.hero-section {
+  position: relative;
+  text-align: center;
+  margin-bottom: var(--space-16);
+  padding: var(--space-16) var(--space-8);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+}
+
+.hero-background {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.hero-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500), var(--primary-600));
+  opacity: 0.9;
+}
+
+.hero-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: white;
+  margin-bottom: var(--space-6);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.hero-description {
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 600px;
+  margin: 0 auto var(--space-8);
+  line-height: 1.7;
+  font-weight: 400;
+}
+
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-8);
+  margin-top: var(--space-8);
+}
+
+.stat-item {
+  text-align: center;
+  color: white;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: var(--space-1);
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+/* Mode Selector */
+.mode-selector-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-12);
+}
+
+.mode-selector {
+  display: flex;
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: var(--space-2);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--gray-200);
+}
+
+.dark .mode-selector {
+  background: var(--gray-800);
+  border-color: var(--gray-700);
+}
+
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border: none;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--gray-600);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.dark .mode-btn {
+  color: var(--gray-400);
+}
+
+.mode-btn.active {
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+.mode-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.mode-badge {
+  font-size: 0.75rem;
+  padding: var(--space-1) var(--space-2);
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+
+.mode-btn:not(.active) .mode-badge {
+  background: var(--gray-100);
+  color: var(--gray-600);
+}
+
+.dark .mode-btn:not(.active) .mode-badge {
+  background: var(--gray-700);
+  color: var(--gray-400);
+}
+
+/* Workspace */
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-8);
+  margin-bottom: var(--space-12);
+}
+
+@media (max-width: 1200px) {
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.workspace-panel {
+  background: white;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--gray-200);
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.dark .workspace-panel {
+  background: var(--gray-800);
+  border-color: var(--gray-700);
+}
+
+.workspace-panel:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2xl);
+}
+
+/* Panel Header */
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--gray-200);
+  background: linear-gradient(135deg, var(--gray-50), var(--primary-50));
+}
+
+.dark .panel-header {
+  border-bottom-color: var(--gray-700);
+  background: linear-gradient(135deg, var(--gray-800), var(--gray-700));
+}
+
+.panel-icon {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+}
+
+.panel-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: white;
+}
+
+.panel-title h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.dark .panel-title h2 {
+  color: var(--gray-100);
+}
+
+.panel-title p {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  margin: 0;
+}
+
+/* Graph Editor */
+.graph-editor {
+  padding: var(--space-6);
+}
+
+.editor-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.editor-section {
+  background: var(--gray-50);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  border: 1px solid var(--gray-200);
+}
+
+.dark .editor-section {
+  background: var(--gray-700);
+  border-color: var(--gray-600);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.section-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.dark .section-header h3 {
+  color: var(--gray-100);
+}
+
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--primary-500);
+  border: none;
+  border-radius: var(--radius-md);
+  color: white;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.refresh-btn:hover {
+  background: var(--primary-600);
+  transform: translateY(-1px);
+}
+
+.refresh-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+  align-items: end;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-700);
+  margin-bottom: var(--space-2);
+}
+
+.dark .form-group label {
+  color: var(--gray-300);
+}
+
+.form-input,
+.form-select {
+  padding: var(--space-3);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  background: white;
+  color: var(--gray-900);
+  font-size: 0.875rem;
+  transition: all var(--transition-fast);
+}
+
+.dark .form-input,
+.dark .form-select {
+  background: var(--gray-800);
+  border-color: var(--gray-600);
+  color: var(--gray-100);
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+  border-color: transparent;
+}
+
+.input-group {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.input-group .form-input {
+  flex: 1;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.btn-primary {
+  background: var(--primary-500);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-600);
+  transform: translateY(-1px);
+}
+
+.btn-success {
+  background: var(--success-500);
+  color: white;
+}
+
+.btn-success:hover {
+  background: var(--success-600);
+  transform: translateY(-1px);
+}
+
+.btn-purple {
+  background: var(--secondary-500);
+  color: white;
+}
+
+.btn-purple:hover {
+  background: var(--secondary-600);
+  transform: translateY(-1px);
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* Notifications */
+.notification {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid;
+  margin-bottom: var(--space-4);
+  font-weight: 500;
+}
+
+.notification.success {
+  background: rgba(16, 185, 129, 0.1);
+  border-left-color: var(--success-500);
+  color: var(--success-700);
+}
+
+.notification.error {
+  background: rgba(239, 68, 68, 0.1);
+  border-left-color: var(--danger-500);
+  color: var(--danger-700);
+}
+
+.notification-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Summary Section */
+.summary-section {
+  background: var(--gray-50);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  border: 1px solid var(--gray-200);
+}
+
+.dark .summary-section {
+  background: var(--gray-700);
+  border-color: var(--gray-600);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+}
+
+@media (max-width: 768px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.summary-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  border: 1px solid var(--gray-200);
+}
+
+.dark .summary-card {
+  background: var(--gray-800);
+  border-color: var(--gray-600);
+}
+
+.summary-header h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: var(--space-3);
+}
+
+.dark .summary-header h4 {
+  color: var(--gray-100);
+}
+
+.summary-content {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.node-list,
+.edge-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.node-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+
+.node-item.initial {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success-700);
+}
+
+.node-item.final {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger-700);
+}
+
+.node-item.normal {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary-700);
+}
+
+.node-type-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.node-name {
+  font-weight: 600;
+}
+
+.node-type {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.edge-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  font-size: 0.875rem;
+}
+
+.edge-source,
+.edge-target {
+  padding: var(--space-1) var(--space-2);
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary-700);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+.edge-arrow svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--gray-400);
+}
+
+.edge-weight {
+  color: var(--gray-500);
+  font-size: 0.75rem;
+}
+
+.empty-state {
+  color: var(--gray-500);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: var(--space-4);
+}
+
+/* Matrix Input */
+.matrix-input {
+  padding: var(--space-6);
+}
+
+.matrix-config {
+  margin-bottom: var(--space-6);
+}
+
+.size-selector {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.size-input {
+  width: 120px;
+}
+
+.size-info {
+  color: var(--gray-500);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.matrix-container {
+  background: var(--gray-50);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  border: 1px solid var(--gray-200);
+}
+
+.dark .matrix-container {
+  background: var(--gray-700);
+  border-color: var(--gray-600);
+}
+
+.matrix-wrapper {
+  overflow-x: auto;
+  margin-bottom: var(--space-4);
+}
+
+.matrix-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.matrix-corner,
+.matrix-header {
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+  color: white;
+  padding: var(--space-3);
+  font-weight: 600;
+  text-align: center;
+}
+
+.row-header {
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+  color: white;
+  font-weight: 600;
+}
+
+.matrix-cell {
+  padding: var(--space-2);
+  background: white;
+  border: 1px solid var(--gray-200);
+}
+
+.dark .matrix-cell {
+  background: var(--gray-800);
+  border-color: var(--gray-600);
+}
+
+.matrix-cell:nth-child(even) {
+  background: var(--gray-50);
+}
+
+.dark .matrix-cell:nth-child(even) {
+  background: var(--gray-700);
+}
+
+.matrix-input input {
+  width: 80px;
+  padding: var(--space-2);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.dark .matrix-input input {
+  background: var(--gray-800);
+  border-color: var(--gray-600);
+  color: var(--gray-100);
+}
+
+.matrix-legend {
+  display: flex;
+  gap: var(--space-6);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  color: var(--gray-600);
+}
+
+.dark .legend-item {
+  color: var(--gray-400);
+}
+
+.legend-color {
+  width: 1rem;
+  height: 1rem;
+  border-radius: var(--radius-sm);
+}
+
+.legend-color.diagonal {
+  background: var(--primary-500);
+}
+
+.legend-color.infinity {
+  background: var(--danger-500);
+}
+
+.legend-color.value {
+  background: var(--success-500);
+}
+
+/* Graph Visualizer */
+.graph-visualizer {
+  padding: var(--space-6);
+}
+
+.empty-visualization {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 500px;
+  background: white;
+  border-radius: var(--radius-xl);
+  border: 2px dashed var(--gray-300);
+  color: var(--gray-500);
+}
+
+.dark .empty-visualization {
+  background: var(--gray-800);
+  border-color: var(--gray-600);
+  color: var(--gray-400);
+}
+
+.empty-icon svg {
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: var(--space-4);
+}
+
+.empty-visualization h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.empty-visualization p {
+  font-size: 0.875rem;
+}
+
+.visualization-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.react-flow-container {
+  height: 500px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-lg);
+}
+
+.dark .react-flow-container {
+  border-color: var(--gray-700);
+}
+
+.react-flow-custom .react-flow__controls {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.dark .react-flow-custom .react-flow__controls {
+  background: var(--gray-800);
+  border-color: var(--gray-700);
+}
+
+.react-flow-custom .react-flow__controls button {
+  background: transparent;
+  border-bottom: 1px solid var(--gray-200);
+  color: var(--gray-600);
+}
+
+.dark .react-flow-custom .react-flow__controls button {
+  border-bottom-color: var(--gray-700);
+  color: var(--gray-400);
+}
+
+.react-flow-custom .react-flow__controls button:hover {
+  background: var(--gray-50);
+}
+
+.dark .react-flow-custom .react-flow__controls button:hover {
+  background: var(--gray-700);
+}
+
+.react-flow-custom .react-flow__minimap {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.dark .react-flow-custom .react-flow__minimap {
+  background: var(--gray-800);
+  border-color: var(--gray-700);
+}
+
+.custom-node {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: grab;
+  position: relative;
+}
+
+.custom-node:active {
+  cursor: grabbing;
+}
+
+.node-label {
+  z-index: 2;
+}
+
+.node-indicator {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  color: var(--primary-600);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.625rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-6);
+  padding: var(--space-4);
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
+}
+
+.dark .legend {
+  background: var(--gray-800);
+  border-color: var(--gray-700);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-600);
+}
+
+.dark .legend-item {
+  color: var(--gray-400);
+}
+
+.legend-node {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+}
+
+.legend-node.initial {
+  background: linear-gradient(135deg, var(--success-500), var(--success-600));
+}
+
+.legend-node.normal {
+  background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+}
+
+.legend-node.final {
+  background: linear-gradient(135deg, var(--danger-500), var(--danger-600));
+}
+
+.matrix-display {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  border: 1px solid var(--gray-200);
+}
+
+.dark .matrix-display {
+  background: var(--gray-800);
+  border-color: var(--gray-700);
+}
+
+.matrix-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: var(--space-2);
+}
+
+.dark .matrix-header h3 {
+  color: var(--gray-100);
+}
+
+.matrix-header p {
+  color: var(--gray-500);
+  font-size: 0.875rem;
+  margin-bottom: var(--space-4);
+}
+
+.matrix-table-container {
+  overflow-x: auto;
+}
+
+.display-matrix {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.matrix-col-header,
+.matrix-row-header {
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+  color: white;
+  padding: var(--space-3);
+  font-weight: 600;
+  text-align: center;
+}
+
+.matrix-value {
+  padding: var(--space-3);
+  text-align: center;
+  background: white;
+  border: 1px solid var(--gray-200);
+  font-weight: 500;
+}
+
+.dark .matrix-value {
+  background: var(--gray-800);
+  border-color: var(--gray-600);
+  color: var(--gray-100);
+}
+
+.matrix-value.diagonal {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary-700);
+}
+
+.dark .matrix-value.diagonal {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--primary-400);
+}
+
+.infinity {
+  color: var(--danger-500);
+  font-weight: 600;
+}
+
+/* Calculation Panel */
+.calculation-panel {
+  background: white;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--gray-200);
+  overflow: hidden;
+  margin-bottom: var(--space-12);
+}
+
+.dark .calculation-panel {
+  background: var(--gray-800);
+  border-color: var(--gray-700);
+}
+
+.calculation-header {
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--gray-200);
+  background: linear-gradient(135deg, var(--gray-50), var(--primary-50));
+}
+
+.dark .calculation-header {
+  border-bottom-color: var(--gray-700);
+  background: linear-gradient(135deg, var(--gray-800), var(--gray-700));
+}
+
+.calculation-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.calculation-icon {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+}
+
+.calculation-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: white;
+}
+
+.calculation-title h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.dark .calculation-title h3 {
+  color: var(--gray-100);
+}
+
+.calculation-title p {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  margin: 0;
+}
+
+.method-selection {
+  padding: var(--space-6);
+}
+
+.method-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+@media (max-width: 768px) {
+  .method-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+.method-option {
+  position: relative;
+  display: block;
+  padding: var(--space-4);
+  background: var(--gray-50);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.dark .method-option {
+  background: var(--gray-700);
+  border-color: var(--gray-600);
+}
+
+.method-option:hover {
+  border-color: var(--primary-300);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.method-option.selected {
+  border-color: var(--primary-500);
+  background: rgba(59, 130, 246, 0.05);
+  box-shadow: var(--shadow-lg);
+}
+
+.dark .method-option.selected {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.method-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.method-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.method-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+}
+
+.method-icon.min {
+  background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+}
+
+.method-icon.max {
+  background: linear-gradient(135deg, var(--danger-500), var(--danger-600));
+}
+
+.method-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: white;
+}
+
+.method-info {
+  flex: 1;
+}
+
+.method-name {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: var(--space-1);
+}
+
+.dark .method-name {
+  color: var(--gray-100);
+}
+
+.method-desc {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--gray-500);
+}
+
+.method-indicator {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid var(--gray-300);
+  border-radius: 50%;
+  transition: all var(--transition-fast);
+}
+
+.method-option.selected .method-indicator {
+  border-color: var(--primary-500);
+  background: var(--primary-500);
+}
+
+.method-option.selected .method-indicator::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0.5rem;
+  height: 0.5rem;
+  background: white;
+  border-radius: 50%;
+}
+
+.calculate-btn {
+  width: 100%;
+  padding: var(--space-4) var(--space-6);
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+  border: none;
+  border-radius: var(--radius-xl);
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.calculate-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--primary-600), var(--secondary-600));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+}
+
+.calculate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.btn-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.loading-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Results Display */
+.results-container {
+  background: white;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--gray-200);
+  overflow: hidden;
+}
+
+.dark .results-container {
+  background: var(--gray-800);
+  border-color: var(--gray-700);
+}
+
+.results-display {
+  padding: var(--space-6);
+}
+
+.results-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.dark .results-header {
+  border-bottom-color: var(--gray-700);
+}
+
+.results-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  background: linear-gradient(135deg, var(--success-500), var(--success-600));
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.results-icon svg {
+  width: 2rem;
+  height: 2rem;
+  color: white;
+}
+
+.results-title h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--gray-900);
+  margin: 0 0 var(--space-2);
+}
+
+.dark .results-title h2 {
+  color: var(--gray-100);
+}
+
+.results-title p {
+  font-size: 1rem;
+  color: var(--gray-500);
+  margin: 0;
+}
+
+.results-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12);
+  text-align: center;
+  color: var(--danger-600);
+}
+
+.error-icon svg {
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: var(--space-4);
+}
+
+.results-error h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.results-tabs {
+  display: flex;
+  background: var(--gray-100);
+  border-radius: var(--radius-lg);
+  padding: var(--space-1);
+  margin-bottom: var(--space-6);
+}
+
+.dark .results-tabs {
+  background: var(--gray-700);
+}
+
+.tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--gray-600);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.dark .tab-btn {
+  color: var(--gray-400);
+}
+
+.tab-btn.active {
+  background: white;
+  color: var(--primary-600);
+  box-shadow: var(--shadow-sm);
+}
+
+.dark .tab-btn.active {
+  background: var(--gray-800);
+  color: var(--primary-400);
+}
+
+.tab-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.tab-content {
+  min-height: 400px;
+}
+
+/* Steps */
+.steps-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.step-card {
+  background: var(--gray-50);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--gray-200);
+  overflow: hidden;
+}
+
+.dark .step-card {
+  background: var(--gray-700);
+  border-color: var(--gray-600);
+}
+
+.step-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.step-header:hover {
+  background: var(--gray-100);
+}
+
+.dark .step-header:hover {
+  background: var(--gray-600);
+}
+
+.step-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.step-number {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.step-details h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.dark .step-details h4 {
+  color: var(--gray-100);
+}
+
+.step-details p {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  margin: 0;
+}
+
+.step-toggle {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.step-toggle.expanded {
+  transform: rotate(180deg);
+}
+
+.step-toggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--gray-400);
+}
+
+.step-content {
+  overflow: hidden;
+}
+
+.step-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  border-top: 1px solid var(--gray-200);
+}
+
+.dark .step-grid {
+  border-top-color: var(--gray-600);
+}
+
+@media (max-width: 1024px) {
+  .step-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.step-matrix h5,
+.step-graph h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: var(--space-3);
+}
+
+.dark .step-matrix h5,
+.dark .step-graph h5 {
+  color: var(--gray-100);
+}
+
+/* Calculations */
+.calculations-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  border-top: 1px solid var(--gray-200);
+}
+
+.dark .calculations-grid {
+  border-top-color: var(--gray-600);
+}
+
+@media (max-width: 768px) {
+  .calculations-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.calculation-section {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  border: 1px solid var(--gray-200);
+}
+
+.dark .calculation-section {
+  background: var(--gray-800);
+  border-color: var(--gray-600);
+}
+
+.calculation-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: var(--space-3);
+}
+
+.dark .calculation-title {
+  color: var(--gray-100);
+}
+
+.calculation-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.calculation-item {
+  padding: var(--space-2);
+  background: var(--gray-50);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+
+.dark .calculation-item {
+  background: var(--gray-700);
+}
+
+.calculation-formula {
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: var(--space-1);
+}
+
+.dark .calculation-formula {
+  color: var(--gray-100);
+}
+
+.calculation-values {
+  color: var(--gray-600);
+  font-family: 'Courier New', monospace;
+}
+
+.dark .calculation-values {
+  color: var(--gray-400);
+}
+
+/* WijGraph */
+.wij-graph {
+  position: relative;
+  height: 300px;
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
+  overflow: hidden;
+}
+
+.dark .wij-graph {
+  background: var(--gray-800);
+  border-color: var(--gray-600);
+}
+
+.wij-container {
+  position: relative;
+  height: 100%;
+}
+
+.animation-toggle {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.dark .animation-toggle {
+  background: var(--gray-800);
+  border-color: var(--gray-600);
+  color: var(--gray-300);
+}
+
+.animation-toggle:hover {
+  background: var(--gray-50);
+  transform: translateY(-1px);
+}
+
+.dark .animation-toggle:hover {
+  background: var(--gray-700);
+}
+
+.animation-toggle svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.wij-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--gray-500);
+}
+
+.wij-empty .empty-icon svg {
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: var(--space-2);
+}
+
+.wij-empty p {
+  font-size: 0.875rem;
+}
+
+/* Final Result */
+.final-result {
+  padding: var(--space-6);
+}
+
+.final-header {
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+.final-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: var(--space-2);
+}
+
+.dark .final-header h3 {
+  color: var(--gray-100);
+}
+
+.final-header p {
+  color: var(--gray-500);
+  font-size: 1rem;
+}
+
+/* Paths Result */
+.paths-result {
+  padding: var(--space-6);
+}
+
+.paths-header {
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+.paths-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: var(--space-2);
+}
+
+.dark .paths-header h3 {
+  color: var(--gray-100);
+}
+
+.paths-header p {
+  color: var(--gray-500);
+  font-size: 1rem;
+}
+
+.optimal-path {
+  display: flex;
+  justify-content: center;
+}
+
+.path-card {
+  background: linear-gradient(135deg, var(--success-50), var(--primary-50));
+  border: 2px solid var(--success-200);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  max-width: 600px;
+  width: 100%;
+}
+
+.dark .path-card {
+  background: linear-gradient(135deg, var(--gray-800), var(--gray-700));
+  border-color: var(--success-600);
+}
+
+.path-info {
+  text-align: center;
+}
+
+.path-nodes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.path-start,
+.path-end {
+  padding: var(--space-3) var(--space-4);
+  background: linear-gradient(135deg, var(--success-500), var(--success-600));
+  color: white;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.path-arrow svg {
+  width: 2rem;
+  height: 2rem;
+  color: var(--success-500);
+}
+
+.path-sequence {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.path-node {
+  padding: var(--space-2) var(--space-3);
+  background: white;
+  border: 2px solid var(--success-300);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  color: var(--success-700);
+}
+
+.dark .path-node {
+  background: var(--gray-800);
+  border-color: var(--success-500);
+  color: var(--success-400);
+}
+
+.path-connector svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--success-400);
+}
+
+.no-path {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12);
+  text-align: center;
+  color: var(--warning-600);
+}
+
+.no-path-icon svg {
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: var(--space-4);
+}
+
+.no-path h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.no-path p {
+  color: var(--gray-500);
+  font-size: 0.875rem;
+}
+
+/* Matrix Display Components */
+.matrix-display-container {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  border: 1px solid var(--gray-200);
+}
+
+.dark .matrix-display-container {
+  background: var(--gray-800);
+  border-color: var(--gray-600);
+}
+
+.matrix-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: var(--space-3);
+  text-align: center;
+}
+
+.dark .matrix-title {
+  color: var(--gray-100);
+}
+
+.matrix-table-wrapper {
+  overflow-x: auto;
+}
+
+.result-matrix {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.result-matrix .matrix-header {
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+  color: white;
+  padding: var(--space-2);
+  font-weight: 600;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.result-matrix .matrix-row-header {
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+  color: white;
+  padding: var(--space-2);
+  font-weight: 600;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.result-matrix .matrix-cell {
+  padding: var(--space-2);
+  text-align: center;
+  background: white;
+  border: 1px solid var(--gray-200);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.dark .result-matrix .matrix-cell {
+  background: var(--gray-800);
+  border-color: var(--gray-600);
+  color: var(--gray-100);
+}
+
+.result-matrix .matrix-cell.diagonal {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary-700);
+}
+
+.dark .result-matrix .matrix-cell.diagonal {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--primary-400);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .hero-stats {
+    gap: var(--space-4);
+  }
+  
+  .stat-number {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    padding: var(--space-3) var(--space-4);
+  }
+  
+  .logo-text h1 {
+    font-size: 1.25rem;
+  }
+  
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .hero-description {
+    font-size: 1rem;
+  }
+  
+  .hero-stats {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  
+  .mode-selector {
+    flex-direction: column;
+  }
+  
+  .main-content {
+    padding: var(--space-6) var(--space-4);
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-section {
+    padding: var(--space-8) var(--space-4);
+  }
+  
+  .hero-title {
+    font-size: 1.75rem;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .method-options {
+    grid-template-columns: 1fr;
+  }
+  
+  .path-sequence {
+    flex-direction: column;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-100);
+  border-radius: var(--radius-sm);
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: var(--gray-700);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: var(--radius-sm);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--gray-600);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
+}
+
+/* Print Styles */
+@media print {
+  .header,
+  .mode-selector-container,
+  .calculation-panel {
+    display: none;
+  }
+  
+  .workspace-panel,
+  .results-container {
+    box-shadow: none;
+    border: 1px solid var(--gray-300);
+  }
+  
+  .hero-section {
+    background: none;
+    color: var(--gray-900);
+  }
+}

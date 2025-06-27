@@ -1,0 +1,2290 @@
+D:\...\frontend-last> ls
+
+
+    Répertoire : D:\TOKY\PROJET\Recherche operationnel\demoucron\frontend-last
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         6/23/2025   3:43 PM                app
+d-----         6/23/2025   3:45 PM                node_modules
+d-----         6/23/2025   3:35 PM                public
+d-----         6/23/2025   3:38 PM                src
+-a----         5/15/2025   8:53 AM            253 .gitignore
+-a----         5/15/2025   8:53 AM            844 eslint.config.js
+-a----         6/23/2025   3:36 PM            651 index.html
+-a----         6/23/2025   3:45 PM         119025 package-lock.json
+-a----         6/23/2025   3:36 PM            704 package.json
+-a----         5/15/2025   8:53 AM            856 README.md
+-a----         6/23/2025   3:37 PM            180 vite.config.js
+
+
+D:\...\frontend-last> tree /F .\src\
+Structure du dossier pour le volume Stockage
+Le numéro de série du volume est 0616-3CC8
+D:\TOKY\PROJET\RECHERCHE OPERATIONNEL\DEMOUCRON\FRONTEND-LAST\SRC
+│   App.css
+│   App.jsx
+│   index.css
+│   main.jsx
+│
+├───assets
+│       react.svg
+│
+├───components
+│       Home.jsx
+│       Sujet.jsx
+│       WijGraph.jsx
+│
+└───lib
+        logiqueMax.js
+        logiqueMini.js
+        type.js
+
+D:\...\frontend-last> 
+D:\...\frontend-last> cat .\src\App.css
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+D:\...\frontend-last> cat .\src\App.jsx
+import React from 'react'
+import Home from './components/Home'
+
+function App() {
+  return <Home />
+}
+
+export default App
+D:\...\frontend-last> 
+D:\...\frontend-last> cat .\src\App.css
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+D:\...\frontend-last> cat .\src\App.jsx
+import React from 'react'
+import Home from './components/Home'
+
+function App() {
+  return <Home />
+}
+
+export default App
+D:\...\frontend-last> cat .\src\main.jsx
+import React from "react"
+import ReactDOM from "react-dom/client"
+import App from "./App.jsx"
+import "./index.css"
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)
+D:\...\frontend-last> cat .\src\index.css
+:root {
+  --orange: #d65a31;
+  --orange2: #f6ae2d;
+  --blue: #3a7bd5;
+  --cyan: #00d2ff;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --red-500: #ef4444;
+  --red-600: #dc2626;
+  --green-500: #10b981;
+  --yellow-500: #f59e0b;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --cyan-400: #22d3ee;
+  --cyan-500: #06b6d4;
+  --indigo-500: #6366f1;
+  --purple-400: #a855f7;
+  --pink-400: #f472b6;
+  --orange-400: #fb923c;
+  --orange-500: #f97316;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
+    "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  color: var(--gray-900);
+}
+
+.font-podkova {
+  font-family: "Podkova", serif;
+}
+
+.font-poppins {
+  font-family: "Poppins", sans-serif;
+}
+
+/* Utility Classes */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+.gap-3 {
+  gap: 0.75rem;
+}
+.gap-4 {
+  gap: 1rem;
+}
+.gap-6 {
+  gap: 1.5rem;
+}
+.gap-8 {
+  gap: 2rem;
+}
+.gap-10 {
+  gap: 2.5rem;
+}
+.gap-12 {
+  gap: 3rem;
+}
+
+.grid {
+  display: grid;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.w-full {
+  width: 100%;
+}
+.h-full {
+  height: 100%;
+}
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.p-2 {
+  padding: 0.5rem;
+}
+.p-3 {
+  padding: 0.75rem;
+}
+.p-4 {
+  padding: 1rem;
+}
+.p-6 {
+  padding: 1.5rem;
+}
+.p-8 {
+  padding: 2rem;
+}
+.p-12 {
+  padding: 3rem;
+}
+
+.px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.px-3 {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.px-5 {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+.px-6 {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.py-1 {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.py-3 {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+.py-4 {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+.py-8 {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+.py-12 {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+.py-16 {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+
+.m-2 {
+  margin: 0.5rem;
+}
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+.mb-4 {
+  margin-bottom: 1rem;
+}
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+.mb-8 {
+  margin-bottom: 2rem;
+}
+.mb-12 {
+  margin-bottom: 3rem;
+}
+.mt-1 {
+  margin-top: 0.25rem;
+}
+.mt-2 {
+  margin-top: 0.5rem;
+}
+.mt-4 {
+  margin-top: 1rem;
+}
+.mt-8 {
+  margin-top: 2rem;
+}
+.mt-12 {
+  margin-top: 3rem;
+}
+.mt-20 {
+  margin-top: 5rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+}
+.text-sm {
+  font-size: 0.875rem;
+}
+.text-base {
+  font-size: 1rem;
+}
+.text-lg {
+  font-size: 1.125rem;
+}
+.text-xl {
+  font-size: 1.25rem;
+}
+.text-2xl {
+  font-size: 1.5rem;
+}
+.text-3xl {
+  font-size: 1.875rem;
+}
+.text-4xl {
+  font-size: 2.25rem;
+}
+.text-5xl {
+  font-size: 3rem;
+}
+.text-7xl {
+  font-size: 4.5rem;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+.font-semibold {
+  font-weight: 600;
+}
+.font-bold {
+  font-weight: 700;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-white {
+  color: white;
+}
+.text-gray-600 {
+  color: var(--gray-600);
+}
+.text-gray-700 {
+  color: var(--gray-700);
+}
+.text-gray-800 {
+  color: var(--gray-800);
+}
+.text-blue-100 {
+  color: #dbeafe;
+}
+.text-blue-200 {
+  color: #bfdbfe;
+}
+.text-red-600 {
+  color: var(--red-600);
+}
+
+.bg-white {
+  background-color: white;
+}
+.bg-gray-50 {
+  background-color: var(--gray-50);
+}
+.bg-gray-100 {
+  background-color: var(--gray-100);
+}
+
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+.rounded-xl {
+  border-radius: 0.75rem;
+}
+.rounded-3xl {
+  border-radius: 1.5rem;
+}
+.rounded-full {
+  border-radius: 9999px;
+}
+
+.border {
+  border-width: 1px;
+}
+.border-0 {
+  border-width: 0;
+}
+.border-gray-200 {
+  border-color: var(--gray-200);
+}
+.border-gray-300 {
+  border-color: var(--gray-300);
+}
+.border-blue-500 {
+  border-color: var(--blue-500);
+}
+
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+.shadow-xl {
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+.shadow-2xl {
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+.overflow-x-auto {
+  overflow-x: auto;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.transition-all {
+  transition: all 0.3s ease;
+}
+.transition-colors {
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+.hover\:shadow-lg:hover {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+.hover\:shadow-2xl:hover {
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+}
+.hover\:bg-gray-50:hover {
+  background-color: var(--gray-50);
+}
+.hover\:text-white:hover {
+  color: white;
+}
+.hover\:text-blue-200:hover {
+  color: #bfdbfe;
+}
+
+.disabled\:opacity-50:disabled {
+  opacity: 0.5;
+}
+.disabled\:cursor-not-allowed:disabled {
+  cursor: not-allowed;
+}
+
+/* Gradient backgrounds */
+.bg-gradient-to-br {
+  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
+}
+
+.bg-gradient-to-r {
+  background-image: linear-gradient(to right, var(--tw-gradient-stops));
+}
+
+.from-slate-50 {
+  --tw-gradient-from: #f8fafc;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(248 250 252 / 0));
+}
+
+.to-slate-100 {
+  --tw-gradient-to: #f1f5f9;
+}
+
+.from-blue-600 {
+  --tw-gradient-from: var(--blue-600);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(37 99 235 / 0));
+}
+
+.to-cyan-500 {
+  --tw-gradient-to: var(--cyan-500);
+}
+
+.from-blue-500 {
+  --tw-gradient-from: var(--blue-500);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(59 130 246 / 0));
+}
+
+.from-orange-400 {
+  --tw-gradient-from: var(--orange-400);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(251 146 60 / 0));
+}
+
+.to-red-500 {
+  --tw-gradient-to: var(--red-500);
+}
+
+/* Custom styles */
+.Titre {
+  background: linear-gradient(to right, var(--blue), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.calculer {
+  background: linear-gradient(to right, var(--blue), var(--cyan));
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.calculer:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  53%,
+  80%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%,
+  43% {
+    transform: translate3d(0, -30px, 0);
+  }
+  70% {
+    transform: translate3d(0, -15px, 0);
+  }
+  90% {
+    transform: translate3d(0, -4px, 0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+.animate-fade-in-down {
+  animation: fadeInDown 0.5s ease-in-out;
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-in-out;
+}
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+.delay-500 {
+  animation-delay: 500ms;
+}
+.delay-700 {
+  animation-delay: 700ms;
+}
+.delay-1000 {
+  animation-delay: 1000ms;
+}
+
+/* Form elements */
+input[type="number"],
+input[type="radio"] {
+  accent-color: var(--blue-500);
+}
+
+input[type="number"] {
+  transition: all 0.2s ease;
+}
+
+input[type="number"]:focus {
+  outline: none;
+  border-color: var(--blue-500);
+  box-shadow: 0 0 0 2px rgb(59 130 246 / 0.2);
+  transform: translateY(-1px);
+}
+
+input[type="radio"] {
+  cursor: pointer;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Table styles */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td,
+th {
+  transition: all 0.2s ease;
+}
+
+/* Button styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: linear-gradient(to right, var(--blue-600), var(--cyan-500));
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Card styles */
+.card {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  transform: translateY(-2px);
+}
+
+/* Glass effect */
+.glass {
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  .text-5xl {
+    font-size: 2.25rem;
+  }
+
+  .text-7xl {
+    font-size: 3rem;
+  }
+
+  .px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .md\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .md\:flex-row {
+    flex-direction: row;
+  }
+
+  .md\:text-4xl {
+    font-size: 2.25rem;
+  }
+
+  .md\:text-7xl {
+    font-size: 4.5rem;
+  }
+
+  .md\:py-24 {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+
+  .md\:p-12 {
+    padding: 3rem;
+  }
+
+  .md\:w-auto {
+    width: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+D:\...\frontend-last> 
+
+D:\...\frontend-last> cat .\src\components\Home.jsx
+import React from 'react'
+import Sujet from './Sujet'
+
+export default function Home() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
+
+      {/* Main Content with Calculator */}
+      <main className="container py-12">
+        <div className="relative">
+          {/* Decorative elements */}
+          <div 
+            className="absolute -top-10 -left-10 w-64 h-64 rounded-full"
+            style={{
+              background: 'rgba(59, 130, 246, 0.1)',
+              filter: 'blur(48px)'
+            }}
+          ></div>
+          <div
+            className="absolute -bottom-10 -right-10 w-64 h-64 rounded-full"
+            style={{
+              background: 'rgba(34, 211, 238, 0.1)',
+              filter: 'blur(48px)'
+            }}
+          ></div>
+
+          {/* Title with gradient underline */}
+          <div className="relative z-10 mb-12 text-center">
+            <h2 className="font-podkova text-3xl font-bold inline-block">
+              Calculateur Demoucron
+              <div
+                className="h-1 w-full mt-1"
+                style={{ background: 'linear-gradient(to right, var(--blue-600), var(--cyan-500))' }}
+              ></div>
+            </h2>
+          </div>
+
+          {/* Calculator component */}
+          <div className="relative z-10">
+            <Sujet />
+          </div>
+        </div>
+      </main>
+
+    </div>
+  )
+}
+D:\...\frontend-last> cat .\src\components\Sujet.jsx
+"use client"
+
+import { useEffect, useState } from "react"
+import ReactFlow, { Controls, Background, useNodesState, useEdgesState } from "reactflow"
+import "reactflow/dist/style.css"
+import { motion } from "framer-motion"
+import { ArrowRight, Calculator, ChevronDown, ChevronUp, Maximize, Minimize } from "lucide-react"
+import { MinDemoucron } from "../lib/logiqueMini"
+import { MaxDemoucron } from "../lib/logiqueMax"
+import WijGraph from "./WijGraph"
+
+export default function Sujet() {
+  const [nbrMatrice, setNbrMatrice] = useState(0)
+  const [matriceData, setMatriceData] = useState([])
+  const [steps, setSteps] = useState([])
+  const [finalMatrix, setFinalMatrix] = useState([])
+  const [optimalPaths, setOptimalPaths] = useState({})
+  const [formData, setFormData] = useState({
+    methode: "",
+    matrice: [],
+    nbrMatrice: 0,
+  })
+  const [expandedSteps, setExpandedSteps] = useState({})
+  const [isCalculating, setIsCalculating] = useState(false)
+  const [nodePositions, setNodePositions] = useState({})
+
+  useEffect(() => {
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      matrice: matriceData,
+    }))
+  }, [matriceData])
+
+  const handleChange = (event) => {
+    const value = Number.parseInt(event.target.value, 10)
+    const validValue = isNaN(value) ? 0 : value
+
+    setNbrMatrice(validValue)
+    setFormData({ ...formData, nbrMatrice: validValue })
+
+    if (validValue > 0) {
+      const initialMatrice = Array.from({ length: validValue }, () => Array(validValue).fill(Number.POSITIVE_INFINITY))
+      setMatriceData(initialMatrice)
+    } else {
+      setMatriceData([])
+    }
+  }
+
+  const handleCalcule = async (e) => {
+    e.preventDefault()
+    try {
+      setIsCalculating(true)
+      setSteps([])
+      setFinalMatrix([])
+      setOptimalPaths({})
+
+      if (formData.methode === "min") {
+        const result = await MinDemoucron(formData)
+        if (result.error) {
+          console.log("Erreur de MinDemoucron :", result.error)
+        } else {
+          setSteps(result.steps)
+          setFinalMatrix(result.finalMatrix)
+          setOptimalPaths(result.optimalPaths || {})
+        }
+      } else if (formData.methode === "max") {
+        const result = await MaxDemoucron(formData)
+        if (result.error) {
+          console.log("Erreur de MaxDemoucron :", result.error)
+        } else {
+          setSteps(result.steps)
+          setFinalMatrix(result.finalMatrix)
+          setOptimalPaths(result.optimalPaths || {})
+        }
+      }
+      setIsCalculating(false)
+    } catch (error) {
+      console.log("Erreur lors du calcul")
+      console.error(error)
+      setIsCalculating(false)
+    }
+  }
+
+  const toggleStepExpansion = (index) => {
+    setExpandedSteps((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }))
+  }
+
+  const [nodes, setNodes, onNodesChange] = useNodesState([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const [optimalNodes, setOptimalNodes, onOptimalNodesChange] = useNodesState([])
+  const [optimalEdges, setOptimalEdges, onOptimalEdgesChange] = useEdgesState([])
+
+  // Mettre Ã  jour le graphe initial
+  useEffect(() => {
+    const newNodes = []
+    const newEdges = []
+
+    // Ajouter tous les nÅ“uds
+    for (let i = 0; i < nbrMatrice; i++) {
+      newNodes.push({
+        id: `node-${i}`,
+        data: { label: `${i + 1}` },
+        position: { x: i * 150, y: i % 2 === 0 ? 0 : 100 },
+        draggable: true,
+        style: {
+          background: "linear-gradient(135deg, #3a7bd5, #00d2ff)",
+          color: "white",
+          border: "none",
+          borderRadius: "50%",
+          width: "40px",
+          height: "40px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontWeight: "bold",
+          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+        },
+      })
+    }
+
+    // Ajouter toutes les arÃªtes de la matrice initiale
+    for (let i = 0; i < nbrMatrice; i++) {
+      for (let j = 0; j < nbrMatrice; j++) {
+        const weight = matriceData[i]?.[j]
+        if (weight !== Number.POSITIVE_INFINITY && i !== j) {
+          newEdges.push({
+            id: `edge-${i}-${j}`,
+            source: `node-${i}`,
+            target: `node-${j}`,
+            label: weight.toString(),
+            style: {
+              stroke: "#3a7bd5",
+              strokeWidth: 2,
+            },
+            labelStyle: {
+              fill: "#3a7bd5",
+              fontWeight: "bold",
+              fontSize: "12px",
+              background: "white",
+              padding: "2px 5px",
+              borderRadius: "4px",
+              border: "1px solid #3a7bd5",
+            },
+            type: "default",
+          })
+        }
+      }
+    }
+
+    setNodes(newNodes)
+    setEdges(newEdges)
+  }, [matriceData, nbrMatrice])
+
+  // Mettre Ã  jour le graphe optimal avec le graphe original + mise en Ã©vidence
+  useEffect(() => {
+    if (nbrMatrice > 0) {
+      const newNodes = []
+      const newEdges = []
+      const optimalPath = optimalPaths[`1-${nbrMatrice}`] || []
+
+      // Ajouter tous les nÅ“uds avec style diffÃ©rent pour les sommets optimaux
+      for (let i = 0; i < nbrMatrice; i++) {
+        const isOptimal = optimalPath.includes(i + 1)
+        newNodes.push({
+          id: `node-${i}`,
+          data: { label: `${i + 1}` },
+          position: { x: i * 150, y: i % 2 === 0 ? 0 : 100 },
+          draggable: true,
+          style: {
+            background: isOptimal
+              ? "linear-gradient(135deg, #FF4E50, #F9D423)"
+              : "linear-gradient(135deg, #3a7bd5, #00d2ff)",
+            color: "white",
+            border: "none",
+            borderRadius: "50%",
+            width: "40px",
+            height: "40px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: "bold",
+            boxShadow: isOptimal ? "0 4px 15px rgba(255, 78, 80, 0.5)" : "0 4px 10px rgba(0, 0, 0, 0.2)",
+          },
+        })
+      }
+
+      // Ajouter toutes les arÃªtes de la matrice initiale
+      for (let i = 0; i < nbrMatrice; i++) {
+        for (let j = 0; j < nbrMatrice; j++) {
+          const weight = matriceData[i]?.[j]
+          if (weight !== Number.POSITIVE_INFINITY && i !== j) {
+            const isOptimalEdge =
+              optimalPath.includes(i + 1) &&
+              optimalPath.includes(j + 1) &&
+              optimalPath.indexOf(i + 1) + 1 === optimalPath.indexOf(j + 1)
+            newEdges.push({
+              id: `edge-${i}-${j}`,
+              source: `node-${i}`,
+              target: `node-${j}`,
+              label: weight.toString(),
+              style: {
+                stroke: isOptimalEdge ? "#FF4E50" : "#3a7bd5",
+                strokeWidth: isOptimalEdge ? 3 : 2,
+              },
+              labelStyle: {
+                fill: isOptimalEdge ? "#FF4E50" : "#3a7bd5",
+                fontWeight: "bold",
+                fontSize: "12px",
+                background: "white",
+                padding: "2px 5px",
+                borderRadius: "4px",
+                border: isOptimalEdge ? "1px solid #FF4E50" : "1px solid #3a7bd5",
+              },
+              type: "default",
+            })
+          }
+        }
+      }
+
+      setOptimalNodes(newNodes)
+      setOptimalEdges(newEdges)
+    }
+  }, [optimalPaths, matriceData, nbrMatrice])
+
+  const renderMatrice = () => {
+    const matrice = []
+    for (let i = 0; i < nbrMatrice; i++) {
+      const ligne = []
+      for (let j = 0; j < nbrMatrice; j++) {
+        if (i === 0) {
+          ligne.push(
+            <td key={j}>
+              <div className="flex flex-col items-center">
+                <p className="text-gray-600 font-medium">{j + 1}</p>
+                <input
+                  type="number"
+                  id="valeur"
+                  name="valeur"
+                  className="border border-gray-300 m-2 rounded-lg px-2 py-2 transition-all"
+                  style={{ width: "70px", fontSize: "0.875rem" }}
+                  onChange={(e) => handleInputChange(i, j, e)}
+                  value={matriceData[i]?.[j] === Number.POSITIVE_INFINITY ? "" : matriceData[i]?.[j]}
+                />
+              </div>
+            </td>,
+          )
+        } else {
+          ligne.push(
+            <td key={j}>
+              <input
+                type="number"
+                id="valeur"
+                name="valeur"
+                className="border border-gray-300 m-2 rounded-lg px-2 py-2 transition-all"
+                style={{ width: '70px', fontSize: '0.875rem' }}
+                onChange={(e) => handleInputChange(i, j, e)}
+                value={matriceData[i]?.[j] === Number.POSITIVE_INFINITY ? "" : matriceData[i]?.[j]}
+              />
+            </td>
+          )
+        }
+      }
+      matrice.push(
+        <tr key={i} className="flex flex-row items-center">
+          <td className="text-gray-600 font-medium w-8 text-center">{i + 1}</td>
+          {ligne}
+        </tr>,
+      )
+    }
+    return matrice
+  }
+
+  const InputChange = (i, j, event) => {
+    const value = Number.parseInt(event.target.value, 10)
+    const validValue = isNaN(value) ? Number.POSITIVE_INFINITY : value
+
+    setMatriceData((prevMatrice) => {
+      const newMatrice = [...prevMatrice]
+      newMatrice[i][j] = validValue
+      return newMatrice
+    })
+  }
+
+  const handleInputChange = (i, j, event) => {
+    const value = event.target.value
+    const edgeId = `edge-${i}-${j}`
+
+    setEdges((prevEdges) => {
+      const updatedEdges = prevEdges.filter((edge) => edge.id !== edgeId)
+      if (value && !isNaN(Number.parseInt(value, 10))) {
+        updatedEdges.push({
+          id: edgeId,
+          source: `node-${i}`,
+          target: `node-${j}`,
+          label: value,
+          style: { stroke: "#3a7bd5", strokeWidth: 2 },
+          labelStyle: {
+            fill: "#3a7bd5",
+            fontWeight: "bold",
+            fontSize: "12px",
+            background: "white",
+            padding: "2px 5px",
+            borderRadius: "4px",
+            border: "1px solid #3a7bd5",
+          },
+          type: "default",
+        })
+      }
+      InputChange(i, j, event)
+      return updatedEdges
+    })
+
+    setNodes((prevNodes) => {
+      const updatedNodes = [...prevNodes]
+      const sourceNode = {
+        id: `node-${i}`,
+        data: { label: `${i + 1}` },
+        position: { x: i * 150, y: 0 },
+        draggable: true,
+        style: {
+          background: "linear-gradient(135deg, #3a7bd5, #00d2ff)",
+          color: "white",
+          border: "none",
+          borderRadius: "50%",
+          width: "40px",
+          height: "40px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontWeight: "bold",
+          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+        },
+      }
+      const targetNode = {
+        id: `node-${j}`,
+        data: { label: `${j + 1}` },
+        position: { x: j * 150, y: 100 },
+        draggable: true,
+        style: {
+          background: "linear-gradient(135deg, #3a7bd5, #00d2ff)",
+          color: "white",
+          border: "none",
+          borderRadius: "50%",
+          width: "40px",
+          height: "40px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontWeight: "bold",
+          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+        },
+      }
+
+      if (!updatedNodes.find((node) => node.id === sourceNode.id)) {
+        updatedNodes.push(sourceNode)
+      }
+      if (!updatedNodes.find((node) => node.id === targetNode.id)) {
+        updatedNodes.push(targetNode)
+      }
+      return updatedNodes
+    })
+  }
+
+  const renderOptimalMatrix = () => {
+    if (finalMatrix.length === 0 || !optimalPaths || Object.keys(optimalPaths).length === 0) return null
+
+    const isOptimalValue = Array.from({ length: finalMatrix.length }, () => Array(finalMatrix.length).fill(false))
+
+    Object.entries(optimalPaths).forEach(([key, path]) => {
+      console.log(key)
+      if (path.length > 1) {
+        for (let k = 0; k < path.length - 1; k++) {
+          const i = path[k] - 1
+          const j = path[k + 1] - 1
+          isOptimalValue[i][j] = true
+        }
+      }
+    })
+
+    return (
+      <table className="border-collapse rounded-lg overflow-hidden shadow-lg">
+        <thead>
+          <tr style={{ background: "linear-gradient(to right, var(--blue-500), var(--cyan-500))" }}>
+            <th className="font-poppins p-3 text-white"></th>
+            {Array.from({ length: finalMatrix.length }, (_, i) => (
+              <th key={i} className="font-poppins p-3 text-white">
+                {i + 1}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {finalMatrix.map((row, i) => (
+            <tr key={i} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+              <td
+                className="font-poppins p-3 font-medium text-white"
+                style={{ background: "linear-gradient(to right, var(--blue-500), var(--cyan-500))" }}
+              >
+                {i + 1}
+              </td>
+              {row.map((value, j) => (
+                <td
+                  key={j}
+                  className="font-poppins p-3 text-center"
+                  style={
+                    isOptimalValue[i][j]
+                      ? {
+                          background: "linear-gradient(to right, var(--orange-400), var(--red-500))",
+                          color: "white",
+                        }
+                      : {}
+                  }
+                >
+                  {value === Number.POSITIVE_INFINITY ? <span className="text-red-600">+âˆž</span> : value}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )
+  }
+
+  return (
+    <div className="w-full container py-8 flex flex-col gap-10">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="rounded-xl shadow-xl p-6"
+        style={{ background: "linear-gradient(to right, var(--blue-600), var(--cyan-500))" }}
+      >
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <h1 className="font-poppins text-3xl md:text-4xl font-bold text-white">Algorithme de Demoucron</h1>
+          <form className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+            <label htmlFor="nbrmatrice" className="font-poppins text-lg text-white">
+              Nombre de sommets :
+            </label>
+            <input
+              type="number"
+              id="nbrmatrice"
+              name="nbrmatrice"
+              className="border-0 text-lg rounded-lg px-4 py-2 shadow-inner"
+              style={{ width: "8rem" }}
+              value={nbrMatrice}
+              onChange={handleChange}
+              min="0"
+            />
+          </form>
+        </div>
+      </motion.div>
+
+      {nbrMatrice > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex flex-col gap-10"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="card">
+              <h2 className="font-poppins text-2xl font-semibold mb-4 text-gray-800">Matrice d'adjacence</h2>
+              <div className="overflow-x-auto">
+                <table style={{ margin: "0 auto" }}>
+                  <tbody>{renderMatrice()}</tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="card">
+              <h2 className="font-poppins text-2xl font-semibold mb-4 text-gray-800">Matrice D1</h2>
+              <div className="overflow-x-auto">
+                <table className="border-collapse" style={{ margin: "0 auto" }}>
+                  <tbody>
+                    {matriceData.map((ligne, i) => (
+                      <tr key={i} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+                        {ligne.map((valeur, j) => (
+                          <td key={j} className="font-poppins border border-gray-200 p-3 text-center">
+                            {valeur === Number.POSITIVE_INFINITY ? <span className="text-red-600">+âˆž</span> : valeur}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div className="card">
+            <h2 className="font-poppins text-2xl font-semibold mb-4 text-gray-800">Graphe initial</h2>
+            <div style={{ width: "100%", height: "350px" }} className="border border-gray-200 rounded-lg">
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                fitView
+              >
+                <Background color="#f0f0f0" gap={16} />
+                <Controls />
+              </ReactFlow>
+            </div>
+          </div>
+
+          <motion.div
+            className="card"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <form className="flex flex-col md:flex-row justify-between items-center gap-6" onSubmit={handleCalcule}>
+              <div className="flex flex-col md:flex-row items-center gap-6 w-full">
+                <div className="flex items-center gap-3 bg-gray-100 p-3 rounded-lg">
+                  <input
+                    type="radio"
+                    id="max"
+                    name="methode"
+                    value="max"
+                    className="w-5 h-5"
+                    onChange={(e) => setFormData({ ...formData, methode: e.target.value })}
+                  />
+                  <label htmlFor="max" className="font-poppins text-lg font-medium flex items-center gap-2">
+                    <Maximize size={18} />
+                    Maximisation
+                  </label>
+                </div>
+                <div className="flex items-center gap-3 bg-gray-100 p-3 rounded-lg">
+                  <input
+                    type="radio"
+                    id="min"
+                    name="methode"
+                    value="min"
+                    className="w-5 h-5"
+                    onChange={(e) => setFormData({ ...formData, methode: e.target.value })}
+                  />
+                  <label htmlFor="min" className="font-poppins text-lg font-medium flex items-center gap-2">
+                    <Minimize size={18} />
+                    Minimisation
+                  </label>
+                </div>
+              </div>
+              <button
+                type="submit"
+                disabled={isCalculating || !formData.methode}
+                className="btn btn-primary font-poppins text-lg font-semibold w-full md:w-auto justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isCalculating ? (
+                  <>
+                    <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+                    Calcul en cours...
+                  </>
+                ) : (
+                  <>
+                    <Calculator size={20} />
+                    Calculer
+                  </>
+                )}
+              </button>
+            </form>
+          </motion.div>
+
+          {steps.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              className="flex flex-col gap-8"
+            >
+              <h2
+                className="font-poppins text-3xl font-bold text-gray-800"
+                style={{ borderBottom: "2px solid var(--blue-500)", paddingBottom: "0.5rem" }}
+              >
+                Ã‰tapes de calcul
+              </h2>
+
+              {steps.map((step, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden"
+                >
+                  <div
+                    className="p-4 flex justify-between items-center cursor-pointer"
+                    style={{ background: "linear-gradient(to right, var(--blue-600), var(--cyan-500))" }}
+                    onClick={() => toggleStepExpansion(index)}
+                  >
+                    <h3 className="font-poppins text-xl font-semibold text-white">
+                      Ã‰tape {index + 1}: k = {step.k}
+                    </h3>
+                    {expandedSteps[index] ? (
+                      <ChevronUp className="text-white" />
+                    ) : (
+                      <ChevronDown className="text-white" />
+                    )}
+                  </div>
+
+                  {expandedSteps[index] && (
+                    <div className="p-6">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div>
+                          <h4 className="font-poppins text-lg font-semibold mb-3 text-gray-800">Graphe W{step.k}</h4>
+                          <WijGraph
+                            W={step.W}
+                            k={step.k}
+                            currentMatrix={step.matrix}
+                            stepIndex={index}
+                            nodePositions={nodePositions}
+                            setNodePositions={setNodePositions}
+                          />
+                        </div>
+                        <div>
+                          <h4 className="font-poppins text-lg font-semibold mb-3 text-gray-800">Matrice D_{step.k}</h4>
+                          <table className="border-collapse rounded-lg overflow-hidden shadow-md">
+                            <tbody>
+                              {step.matrix.map((ligne, i) => (
+                                <tr key={i} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+                                  {ligne.map((valeur, j) => (
+                                    <td key={j} className="font-poppins border border-gray-200 p-3 text-center">
+                                      {valeur === Number.POSITIVE_INFINITY ? (
+                                        <span className="text-red-600">+âˆž</span>
+                                      ) : (
+                                        valeur
+                                      )}
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h4 className="font-poppins text-lg font-semibold mb-3 text-gray-800">Calculs W{step.k}</h4>
+                          {step.W.map((w, wIndex) => (
+                            <div key={wIndex} className="font-poppins flex items-center gap-3 mb-2">
+                              <span className="font-medium">{w.formula}</span>
+                              <ArrowRight className="text-orange-500" size={18} />
+                            </div>
+                          ))}
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h4 className="font-poppins text-lg font-semibold mb-3 text-gray-800">Calculs V{step.k}</h4>
+                          {step.V.map((v, vIndex) => (
+                            <div key={vIndex} className="font-poppins mb-2">
+                              <span className="font-medium">{v.formula}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.8 }}
+                className="card"
+              >
+                <h2 className="font-poppins text-3xl font-bold text-gray-800 mb-6">RÃ©sultats de Calcul</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="flex flex-col gap-4">
+                    <h3 className="font-poppins text-xl font-semibold text-gray-800">Matrice finale</h3>
+                    {finalMatrix.length > 0 ? (
+                      <table className="border-collapse rounded-lg overflow-hidden shadow-lg">
+                        <thead>
+                          <tr style={{ background: "linear-gradient(to right, var(--blue-500), var(--cyan-500))" }}>
+                            <th className="font-poppins p-3 text-white"></th>
+                            {Array.from({ length: finalMatrix.length }, (_, i) => (
+                              <th key={i} className="font-poppins p-3 text-white">
+                                {i + 1}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {finalMatrix.map((ligne, i) => (
+                            <tr key={i} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+                              <td
+                                className="font-poppins p-3 font-medium text-white"
+                                style={{ background: "linear-gradient(to right, var(--blue-500), var(--cyan-500))" }}
+                              >
+                                {i + 1}
+                              </td>
+                              {ligne.map((valeur, j) => (
+                                <td key={j} className="font-poppins p-3 text-center">
+                                  {valeur === Number.POSITIVE_INFINITY ? (
+                                    <span className="text-red-600">+âˆž</span>
+                                  ) : (
+                                    valeur
+                                  )}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p className="font-poppins text-gray-600">
+                        Aucune matrice finale Ã  afficher. Veuillez effectuer un calcul.
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    <h3 className="font-poppins text-xl font-semibold text-gray-800">Chemins optimaux</h3>
+                    {finalMatrix.length > 0 ? (
+                      renderOptimalMatrix()
+                    ) : (
+                      <p className="font-poppins text-gray-600">
+                        Aucune matrice des chemins optimaux Ã  afficher. Veuillez effectuer un calcul.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 1 }}
+                className="card"
+              >
+                <h2 className="font-poppins text-xl font-semibold mb-4 text-gray-800">Graphe des chemins optimaux</h2>
+                {optimalNodes.length > 0 ? (
+                  <div style={{ width: "100%", height: "350px" }} className="border border-gray-200 rounded-lg">
+                    <ReactFlow
+                      nodes={optimalNodes}
+                      edges={optimalEdges}
+                      onNodesChange={onOptimalNodesChange}
+                      onEdgesChange={onOptimalEdgesChange}
+                      fitView
+                    >
+                      <Background color="#f0f0f0" gap={16} />
+                      <Controls />
+                    </ReactFlow>
+                  </div>
+                ) : (
+                  <p className="font-poppins text-gray-600">
+                    Aucun graphe des chemins optimaux Ã  afficher. Veuillez effectuer un calcul.
+                  </p>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </motion.div>
+      )}
+    </div>
+  )
+}
+D:\...\frontend-last> 
+
+D:\...\frontend-last> cat .\src\components\WijGraph.jsx
+"use client"
+
+import { useEffect, useState } from "react"
+import ReactFlow, {
+  Controls,
+  Background,
+  useNodesState,
+  useEdgesState,
+  Panel,
+  BackgroundVariant,
+  MarkerType,
+} from "reactflow"
+
+export default function WijGraph({ W, k, currentMatrix, stepIndex, nodePositions, setNodePositions }) {
+  const [isAnimating, setIsAnimating] = useState(false)
+
+  const generateWijGraph = (W, k, currentMatrix) => {
+    const nodes = []
+    const edges = []
+    const uniqueNodes = new Set()
+    const uniqueEdges = new Set() // Pour Ã©viter les arÃªtes en double
+
+    // Ajouter le sommet k
+    const kNodeId = `node-${k - 1}`
+    uniqueNodes.add(kNodeId)
+
+    // Parcourir les calculs de W_ij pour ajouter les sommets et arÃªtes
+    W.forEach(({ i, j }) => {
+      // Ajouter les sommets i, k, et j
+      uniqueNodes.add(`node-${i - 1}`)
+      uniqueNodes.add(`node-${j - 1}`)
+
+      // Ajouter les arÃªtes i -> k et k -> j
+      const iIdx = i - 1
+      const jIdx = j - 1
+      const kIdx = k - 1
+
+      // ArÃªte i -> k
+      const edgeIkId = `edge-${iIdx}-${kIdx}-${stepIndex}` // Ajouter stepIndex pour Ã©viter les doublons entre Ã©tapes
+      if (!uniqueEdges.has(edgeIkId)) {
+        uniqueEdges.add(edgeIkId)
+        const weightIk = currentMatrix[iIdx][kIdx]
+        if (weightIk !== Number.POSITIVE_INFINITY) {
+          // Ajouter l'arÃªte uniquement si le poids n'est pas infini
+          edges.push({
+            id: edgeIkId,
+            source: `node-${iIdx}`,
+            target: `node-${kIdx}`,
+            label: `${weightIk}`,
+            type: "default",
+            animated: isAnimating,
+            style: {
+              stroke: "#3a7bd5",
+              strokeWidth: 2,
+            },
+            labelStyle: {
+              fill: "#3a7bd5",
+              fontFamily: "inherit",
+              fontWeight: "bold",
+              fontSize: "12px",
+              background: "white",
+              padding: "2px 5px",
+              borderRadius: "4px",
+              border: "1px solid #3a7bd5",
+              filter: "drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))",
+            },
+            markerEnd: MarkerType.ArrowClosed,
+          })
+        }
+      }
+
+      // ArÃªte k -> j
+      const edgeKjId = `edge-${kIdx}-${jIdx}-${stepIndex}` // Ajouter stepIndex pour Ã©viter les doublons entre Ã©tapes
+      if (!uniqueEdges.has(edgeKjId)) {
+        uniqueEdges.add(edgeKjId)
+        const weightKj = currentMatrix[kIdx][jIdx]
+        if (weightKj !== Number.POSITIVE_INFINITY) {
+          // Ajouter l'arÃªte uniquement si le poids n'est pas infini
+          edges.push({
+            id: edgeKjId,
+            source: `node-${kIdx}`,
+            target: `node-${jIdx}`,
+            label: `${weightKj}`,
+            type: "default",
+            animated: isAnimating,
+            style: {
+              stroke: "#00d2ff",
+              strokeWidth: 2,
+            },
+            labelStyle: {
+              fill: "#00d2ff",
+              fontFamily: "inherit",
+              fontWeight: "bold",
+              fontSize: "12px",
+              background: "white",
+              padding: "2px 5px",
+              borderRadius: "4px",
+              border: "1px solid #00d2ff",
+              filter: "drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))",
+            },
+            markerEnd: MarkerType.ArrowClosed,
+          })
+        }
+      }
+    })
+
+    // GÃ©nÃ©rer les nÅ“uds Ã  partir des sommets uniques
+    uniqueNodes.forEach((nodeId) => {
+      const nodeIndex = Number.parseInt(nodeId.split("-")[1])
+      // Ajuster les positions pour une meilleure disposition
+      const savedPosition = nodePositions[stepIndex]?.[nodeId] || {
+        x: nodeIndex === k - 1 ? 150 : nodeIndex < k - 1 ? nodeIndex * 100 : (nodeIndex + 1) * 100,
+        y: nodeIndex === k - 1 ? 0 : 100,
+      }
+
+      // Appliquer un style diffÃ©rent pour le sommet k
+      const isKNode = nodeId === kNodeId
+      nodes.push({
+        id: nodeId,
+        data: {
+          label: `${nodeIndex + 1}`,
+          isKNode: isKNode,
+        },
+        position: savedPosition,
+        draggable: true,
+        style: isKNode
+          ? {
+              background: "linear-gradient(135deg, #FF4E50, #F9D423)",
+              color: "white",
+              border: "none",
+              borderRadius: "50%",
+              width: "40px",
+              height: "40px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: "bold",
+              fontSize: "16px",
+              boxShadow: "0 4px 15px rgba(255, 78, 80, 0.5)",
+              transition: "all 0.3s ease",
+            }
+          : {
+              background: "linear-gradient(135deg, #3a7bd5, #00d2ff)",
+              color: "white",
+              border: "none",
+              borderRadius: "50%",
+              width: "40px",
+              height: "40px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: "bold",
+              fontSize: "16px",
+              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+              transition: "all 0.3s ease",
+            },
+      })
+    })
+
+    return { nodes, edges }
+  }
+
+  // Initialiser les nÅ“uds et arÃªtes avec les donnÃ©es gÃ©nÃ©rÃ©es
+  const { nodes: initialNodes, edges: initialEdges } = generateWijGraph(W, k, currentMatrix)
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+
+  // Mettre Ã  jour les nÅ“uds et arÃªtes si W, k, ou currentMatrix change
+  useEffect(() => {
+    const { nodes: newNodes, edges: newEdges } = generateWijGraph(W, k, currentMatrix)
+    setNodes(newNodes)
+    setEdges(newEdges)
+  }, [W, k, currentMatrix, setNodes, setEdges, stepIndex, isAnimating])
+
+  // Gestionnaire pour mettre Ã  jour les positions des nÅ“uds
+  const handleNodesChange = (changes) => {
+    onNodesChange(changes)
+    setNodePositions((prevPositions) => {
+      const newPositions = { ...prevPositions }
+      if (!newPositions[stepIndex]) {
+        newPositions[stepIndex] = {}
+      }
+
+      changes.forEach((change) => {
+        if (change.type === "position" && "position" in change && change.position) {
+          newPositions[stepIndex][change.id] = {
+            x: change.position.x,
+            y: change.position.y,
+          }
+        }
+      })
+
+      return newPositions
+    })
+  }
+
+  return (
+    <div
+      className="relative w-full rounded-lg overflow-hidden border border-gray-200 shadow-lg mt-4"
+      style={{ height: "300px" }}
+    >
+      {/* Overlay gradient */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "linear-gradient(to bottom right, rgba(59, 130, 246, 0.05), rgba(34, 211, 238, 0.05))",
+          zIndex: 0,
+        }}
+      ></div>
+
+      {nodes.length > 0 ? (
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={handleNodesChange}
+          onEdgesChange={onEdgesChange}
+          fitView
+          fitViewOptions={{ padding: 0.2 }}
+          nodesDraggable={true}
+          elementsSelectable={true}
+          className="w-full h-full"
+        >
+          <Background variant={BackgroundVariant.Dots} gap={12} size={1} color="#3a7bd5" style={{ opacity: 0.2 }} />
+          <Controls
+            style={{
+              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
+              borderRadius: "8px",
+              backgroundColor: "white",
+            }}
+            showInteractive={false}
+          />
+          <Panel position="top-right">
+            <button
+              onClick={() => setIsAnimating(!isAnimating)}
+              className="bg-white px-3 py-1 rounded-md text-xs font-medium shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+            >
+              {isAnimating ? "ArrÃªter l'animation" : "Animer les arÃªtes"}
+            </button>
+          </Panel>
+          <Panel position="bottom-center">
+            <div
+              className="font-poppins text-xs px-3 py-1 rounded-full shadow-sm border border-gray-200"
+              style={{ background: "rgba(255, 255, 255, 0.8)", backdropFilter: "blur(4px)" }}
+            >
+              <span className="font-semibold">Ã‰tape k = {k}</span> â€¢ {nodes.length} sommets â€¢ {edges.length} arÃªtes
+            </div>
+          </Panel>
+        </ReactFlow>
+      ) : (
+        <div className="flex items-center justify-center h-full">
+          <div
+            className="font-poppins text-center px-6 py-4 rounded-lg shadow-md"
+            style={{ background: "rgba(255, 255, 255, 0.8)", backdropFilter: "blur(4px)" }}
+          >
+            <svg
+              className="w-12 h-12 mx-auto text-gray-400 mb-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
+            </svg>
+            <p className="text-gray-600">Aucun chemin trouvÃ© pour cette Ã©tape.</p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+D:\...\frontend-last> 
+
+D:\...\frontend-last> cat .\src\lib\logiqueMax.js
+// src/lib/logiqueMax.js
+
+export async function MaxDemoucron(formData) {
+  const { methode, matrice, nbrMatrice } = formData
+
+  if (!methode) {
+    return { 
+      steps: [], 
+      finalMatrix: [], 
+      predecessors: [], 
+      optimalPaths: {}, 
+      error: "Veuillez sÃ©lectionner une mÃ©thode (min ou max)." 
+    }
+  }
+
+  if (nbrMatrice <= 0 || !matrice || matrice.length !== nbrMatrice || matrice[0].length !== nbrMatrice) {
+    return {
+      steps: [],
+      finalMatrix: [],
+      predecessors: [],
+      optimalPaths: {},
+      error: "Matrice invalide ou nombre de matrices incorrect."
+    }
+  }
+
+  const currentMatrix = matrice.map(row => [...row])
+  const steps = []
+  const predecessors = Array.from({ length: nbrMatrice }, (_, i) =>
+    Array.from({ length: nbrMatrice }, (_, j) => (currentMatrix[i][j] !== Infinity && i !== j ? i : -1))
+  )
+
+  for (let k = 2; k <= nbrMatrice - 1; k++) {
+    const W = []
+    const V = []
+    const kIdx = k - 1
+
+    const verticesToK = []
+    for (let i = 1; i <= nbrMatrice; i++) {
+      const iIdx = i - 1
+      if (i !== k && currentMatrix[iIdx][kIdx] !== Infinity) {
+        verticesToK.push(i)
+      }
+    }
+
+    const verticesFromK = []
+    for (let j = 1; j <= nbrMatrice; j++) {
+      const jIdx = j - 1
+      if (j !== k && currentMatrix[kIdx][jIdx] !== Infinity) {
+        verticesFromK.push(j)
+      }
+    }
+
+    for (const i of verticesToK) {
+      for (const j of verticesFromK) {
+        const iIdx = i - 1
+        const jIdx = j - 1
+
+        const V_ik = currentMatrix[iIdx][kIdx]
+        const V_kj = currentMatrix[kIdx][jIdx]
+        let W_value
+
+        if (V_ik === Infinity || V_kj === Infinity) {
+          W_value = Infinity
+        } else {
+          W_value = V_ik + V_kj
+        }
+
+        W.push({
+          i,
+          j,
+          value: W_value,
+          formula: `W_${i}${j}^(${k-1}) = V_${i}${k}^(${k-1}) + V_${k}${j}^(${k-1}) = ${V_ik === Infinity ? "+âˆž" : V_ik} + ${V_kj === Infinity ? "+âˆž" : V_kj} = ${W_value === Infinity ? "+âˆž" : W_value}`
+        })
+
+        const V_ij = currentMatrix[iIdx][jIdx]
+        const new_V_value = methode === "max" ? Math.max(W_value, V_ij) : Math.min(W_value, V_ij)
+
+        V.push({
+          i,
+          j,
+          value: new_V_value,
+          formula: `V_${i}${j}^(${k}) = ${methode === "max" ? "MAX" : "MIN"}(W_${i}${j}^(${k-1}), V_${i}${j}^(${k-1})) = ${methode === "max" ? "MAX" : "MIN"}(${W_value === Infinity ? "+âˆž" : W_value}, ${V_ij === Infinity ? "+âˆž" : V_ij}) = ${new_V_value === Infinity ? "+âˆž" : new_V_value}`
+        })
+
+        if ((methode === "max" && new_V_value > currentMatrix[iIdx][jIdx]) ||
+            (methode === "min" && new_V_value < currentMatrix[iIdx][jIdx])) {
+          currentMatrix[iIdx][jIdx] = new_V_value
+          predecessors[iIdx][jIdx] = predecessors[kIdx][jIdx]
+        }
+      }
+    }
+
+    const matrixCopy = currentMatrix.map(row => [...row])
+    steps.push({ k, W, V, matrix: matrixCopy })
+  }
+
+  // Construire les chemins optimaux en partant de la derniÃ¨re colonne
+  const optimalPaths = {}
+
+  const findOptimalPathFromLastColumn = () => {
+    const path = []
+    let currentCol = nbrMatrice - 1 // DerniÃ¨re colonne
+
+    while (currentCol >= 0) {
+      let optimalValue = methode === "max" ? -Infinity : Infinity
+      let optimalRow = -1
+
+      // Chercher la valeur optimale dans la colonne actuelle
+      for (let i = 0; i < nbrMatrice; i++) {
+        if (i !== currentCol) {
+          const value = currentMatrix[i][currentCol]
+          if (methode === "max" && value > optimalValue && value !== Infinity) {
+            optimalValue = value
+            optimalRow = i
+          } else if (methode === "min" && value < optimalValue) {
+            optimalValue = value
+            optimalRow = i
+          }
+        }
+      }
+
+      if (optimalRow === -1 || optimalValue === Infinity) break
+      if (path.includes(optimalRow + 1)) break // Ã‰viter les boucles
+
+      path.unshift(optimalRow + 1) // Ajouter le sommet au dÃ©but du chemin
+      currentCol = optimalRow // Passer Ã  la colonne correspondant Ã  la ligne optimale
+    }
+
+    // Ajouter la derniÃ¨re colonne au chemin
+    path.push(nbrMatrice)
+    return path
+  }
+
+  // Calculer le chemin optimal unique Ã  partir de la derniÃ¨re colonne
+  const optimalPath = findOptimalPathFromLastColumn()
+  if (optimalPath.length > 1) {
+    // Stocker le chemin dans optimalPaths avec la clÃ© "1-n" (du premier au dernier sommet)
+    optimalPaths[`1-${nbrMatrice}`] = optimalPath
+  }
+
+  return {
+    steps,
+    finalMatrix: currentMatrix,
+    predecessors,
+    optimalPaths
+  }
+}
+D:\...\frontend-last> cat .\src\lib\logiqueMini.js
+// src/lib/logiqueMini.js
+export async function MinDemoucron(formData) {
+  const { methode, matrice, nbrMatrice } = formData
+
+  if (!methode) {
+    return {
+      steps: [],
+      finalMatrix: [],
+      predecessors: [],
+      optimalPaths: {},
+      error: "Veuillez sÃ©lectionner une mÃ©thode (min ou max)."
+    }
+  }
+
+  if (nbrMatrice <= 0 || !matrice || matrice.length !== nbrMatrice || matrice[0].length !== nbrMatrice) {
+    return {
+      steps: [],
+      finalMatrix: [],
+      predecessors: [],
+      optimalPaths: {},
+      error: "Matrice invalide ou nombre de matrices incorrect."
+    }
+  }
+
+  const currentMatrix = matrice.map(row => [...row])
+  const steps = []
+  const predecessors = Array.from({ length: nbrMatrice }, (_, i) =>
+    Array.from({ length: nbrMatrice }, (_, j) => (currentMatrix[i][j] !== Infinity && i !== j ? i : -1))
+  )
+
+  for (let k = 2; k <= nbrMatrice - 1; k++) {
+    const W = []
+    const V = []
+    const kIdx = k - 1
+
+    const verticesToK = []
+    for (let i = 1; i <= nbrMatrice; i++) {
+      const iIdx = i - 1
+      if (i !== k && currentMatrix[iIdx][kIdx] !== Infinity) {
+        verticesToK.push(i)
+      }
+    }
+
+    const verticesFromK = []
+    for (let j = 1; j <= nbrMatrice; j++) {
+      const jIdx = j - 1
+      if (j !== k && currentMatrix[kIdx][jIdx] !== Infinity) {
+        verticesFromK.push(j)
+      }
+    }
+
+    for (const i of verticesToK) {
+      for (const j of verticesFromK) {
+        const iIdx = i - 1
+        const jIdx = j - 1
+
+        const V_ik = currentMatrix[iIdx][kIdx]
+        const V_kj = currentMatrix[kIdx][jIdx]
+        let W_value
+
+        if (V_ik === Infinity || V_kj === Infinity) {
+          W_value = Infinity
+        } else {
+          W_value = V_ik + V_kj
+        }
+
+        W.push({
+          i,
+          j,
+          value: W_value,
+          formula: `W_${i}${j}^(${k-1}) = V_${i}${k}^(${k-1}) + V_${k}${j}^(${k-1}) = ${V_ik === Infinity ? "+âˆž" : V_ik} + ${V_kj === Infinity ? "+âˆž" : V_kj} = ${W_value === Infinity ? "+âˆž" : W_value}`
+        })
+
+        const V_ij = currentMatrix[iIdx][jIdx]
+        const new_V_value = methode === "min" ? Math.min(W_value, V_ij) : Math.max(W_value, V_ij)
+
+        V.push({
+          i,
+          j,
+          value: new_V_value,
+          formula: `V_${i}${j}^(${k}) = ${methode === "min" ? "MIN" : "MAX"}(W_${i}${j}^(${k-1}}, V_${i}${j}^(${k-1})) = ${methode === "min" ? "MIN" : "MAX"}(${W_value === Infinity ? "+âˆž" : W_value}, ${V_ij === Infinity ? "+âˆž" : V_ij}) = ${new_V_value === Infinity ? "+âˆž" : new_V_value}`
+        })
+
+        if ((methode === "min" && new_V_value < currentMatrix[iIdx][jIdx]) ||
+            (methode === "max" && new_V_value > currentMatrix[iIdx][jIdx])) {
+          currentMatrix[iIdx][jIdx] = new_V_value
+          predecessors[iIdx][jIdx] = predecessors[kIdx][jIdx]
+        }
+      }
+    }
+
+    const matrixCopy = currentMatrix.map(row => [...row])
+    steps.push({ k, W, V, matrix: matrixCopy })
+  }
+
+  // Construire les chemins optimaux en partant de la derniÃ¨re colonne
+  const optimalPaths = {}
+
+  const findOptimalPathFromEnd = (end, start) => {
+    const path = [end + 1]
+    let currentCol = end
+
+    while (currentCol >= 0) {
+      let optimalValue = methode === "min" ? Infinity : -Infinity
+      let optimalRow = -1
+
+      for (let i = 0; i < nbrMatrice; i++) {
+        if (i !== currentCol) {
+          const value = currentMatrix[i][currentCol]
+          if (methode === "min" && value < optimalValue) {
+            optimalValue = value
+            optimalRow = i
+          } else if (methode === "max" && value > optimalValue && value !== Infinity) {
+            optimalValue = value
+            optimalRow = i
+          }
+        }
+      }
+
+      if (optimalRow === -1 || optimalValue === Infinity) break
+      if (path.includes(optimalRow + 1)) break
+
+      path.unshift(optimalRow + 1)
+      if (start !== undefined && optimalRow === start) break
+      currentCol = optimalRow
+    }
+
+    return path
+  }
+
+  const lastColumn = nbrMatrice - 1
+  for (let i = 0; i < nbrMatrice; i++) {
+    if (i !== lastColumn && currentMatrix[i][lastColumn] !== Infinity) {
+      const path = findOptimalPathFromEnd(lastColumn, i)
+      if (path.length > 1 && path[0] === i + 1) {
+        optimalPaths[`${i + 1}-${lastColumn + 1}`] = path
+      }
+    }
+  }
+
+  return {
+    steps,
+    finalMatrix: currentMatrix,
+    predecessors,
+    optimalPaths
+  }
+}
+D:\...\frontend-last> cat .\src\lib\type.js       
+// Types pour les donnÃ©es du formulaire
+export const createFormData = (methode = "", matrice = [], nbrMatrice = 0) => ({
+  methode,
+  matrice,
+  nbrMatrice
+})
+
+// Types pour les dÃ©tails des Ã©tapes
+export const createStepDetail = (i, j, value, formula) => ({
+  i,
+  j,
+  value,
+  formula
+})
+
+// Types pour les Ã©tapes
+export const createStep = (k, W = [], V = [], matrix = []) => ({
+  k,
+  W,
+  V,
+  matrix
+})
+
+// Types pour les positions des nÅ“uds
+export const createNodePosition = (x, y) => ({
+  x,
+  y
+})
+D:\...\frontend-last> 

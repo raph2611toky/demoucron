@@ -1,155 +1,143 @@
-import { useState, useCallback, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
-import Header from "./components/Header.jsx";
-import GraphEditor from "./components/GraphEditor.jsx";
-import MatrixInput from "./components/MatrixInput.jsx";
-import GraphVisualizer from "./components/GraphVisualizer.jsx";
-import ResultsDisplay from "./components/ResultsDisplay.jsx";
-import "./styles.css";
+"use client"
+
+import { useState, useCallback, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import Header from "./components/Header.jsx"
+import GraphEditor from "./components/GraphEditor.jsx"
+import MatrixInput from "./components/MatrixInput.jsx"
+import GraphVisualizer from "./components/GraphVisualizer.jsx"
+import ResultsDisplay from "./components/ResultsDisplay.jsx"
+import { MinDemoucron } from "./lib/logiqueMini.js"
+import { MaxDemoucron } from "./lib/logiqueMax.js"
+import "./styles.css"
 
 function App() {
-  const [mode, setMode] = useState("graph");
-  const [theme, setTheme] = useState("light");
+  const [mode, setMode] = useState("matrix")
+  const [theme, setTheme] = useState("light")
   const [visualizationData, setVisualizationData] = useState({
     nodes: [],
     edges: [],
     node_names: [],
-    initial_matrix: []
-  });
-  const [calculationData, setCalculationData] = useState(null);
-  const [results, setResults] = useState(null);
-  const [method, setMethod] = useState("min");
-  const [isCalculating, setIsCalculating] = useState(false);
+    initial_matrix: [],
+  })
+  const [calculationData, setCalculationData] = useState(null)
+  const [results, setResults] = useState(null)
+  const [method, setMethod] = useState("min")
+  const [isCalculating, setIsCalculating] = useState(false)
 
   useEffect(() => {
     if (theme === "dark") {
-      document.documentElement.classList.add("dark");
+      document.documentElement.classList.add("dark")
     } else {
-      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.remove("dark")
     }
-  }, [theme]);
+  }, [theme])
 
   useEffect(() => {
-    setVisualizationData({ nodes: [], edges: [], node_names: [], initial_matrix: [] });
-    setCalculationData(null);
-    setResults(null);
-  }, [mode]);
+    setVisualizationData({ nodes: [], edges: [], node_names: [], initial_matrix: [] })
+    setCalculationData(null)
+    setResults(null)
+  }, [mode])
 
   const toggleTheme = useCallback(() => {
-    setTheme(theme === "light" ? "dark" : "light");
-  }, [theme]);
+    setTheme(theme === "light" ? "dark" : "light")
+  }, [theme])
 
   const handleGraphUpdate = useCallback((data) => {
     setVisualizationData({
       nodes: data.nodes || [],
       edges: data.edges || [],
       node_names: data.node_names || [],
-      initial_matrix: data.initial_matrix || []
-    });
-    setCalculationData({ type: "graph", graphId: data.graphId });
-  }, []);
+      initial_matrix: data.initial_matrix || [],
+    })
+    setCalculationData({ type: "graph", data })
+  }, [])
 
   const handleMatrixUpdate = useCallback((data) => {
     if (data) {
-      const { matrix, node_names } = data;
-      const nodes = node_names.map((name, index) => ({ id: index, name, type: "normal" }));
-      const edges = [];
+      const { matrix, node_names } = data
+      const nodes = node_names.map((name, index) => ({ id: index, name, type: "normal" }))
+      const edges = []
       for (let i = 0; i < matrix.length; i++) {
         for (let j = 0; j < matrix[i].length; j++) {
-          if (matrix[i][j] !== null && i !== j) {
-            edges.push({ source: node_names[i], target: node_names[j], weight: matrix[i][j] });
+          if (matrix[i][j] !== null && i !== j && matrix[i][j] !== Number.POSITIVE_INFINITY) {
+            edges.push({ source: node_names[i], target: node_names[j], weight: matrix[i][j] })
           }
         }
       }
-      setVisualizationData({ nodes, edges, node_names, initial_matrix: matrix });
-      setCalculationData({ type: "matrix", matrix, node_names });
+      setVisualizationData({ nodes, edges, node_names, initial_matrix: matrix })
+      setCalculationData({ type: "matrix", matrix, node_names })
     } else {
-      setVisualizationData({ nodes: [], edges: [], node_names: [], initial_matrix: [] });
-      setCalculationData(null);
+      setVisualizationData({ nodes: [], edges: [], node_names: [], initial_matrix: [] })
+      setCalculationData(null)
     }
-  }, []);
+  }, [])
 
   const handleCalculate = async () => {
-    if (!calculationData) return;
-    setIsCalculating(true);
+    if (!calculationData) return
+    setIsCalculating(true)
     try {
-      let response;
-      if (calculationData.type === "graph" && calculationData.graphId) {
-        response = await axios.get(`http://localhost:8000/api/graphs/${calculationData.graphId}/run_demoucron/?mode=${method}`);
-      } else if (calculationData.type === "matrix" && calculationData.matrix) {
-        response = await axios.post("http://localhost:8000/api/matrix_demoucron/", {
-          matrix: calculationData.matrix,
-          node_names: calculationData.node_names,
-          method: method
-        });
-      }
-      setResults(response.data);
-    } catch (error) {
-      console.error("Calculation error:", error);
-      setResults({ error: "Erreur lors du calcul" });
-    } finally {
-      setIsCalculating(false);
-    }
-  };
+      let result
+      let formData
 
-  const canCalculate = calculationData && (calculationData.type === "graph" ? calculationData.graphId : calculationData.matrix && calculationData.matrix.length > 0);
+      if (calculationData.type === "matrix" && calculationData.matrix) {
+        formData = {
+          methode: method,
+          matrice: calculationData.matrix.map((row) =>
+            row.map((cell) => (cell === null ? Number.POSITIVE_INFINITY : cell)),
+          ),
+          nbrMatrice: calculationData.node_names.length,
+        }
+      } else if (calculationData.type === "graph" && visualizationData.node_names.length > 0) {
+        // Convertir les données du graphe en matrice
+        const matrix = Array(visualizationData.node_names.length)
+          .fill()
+          .map(() => Array(visualizationData.node_names.length).fill(Number.POSITIVE_INFINITY))
+
+        // Remplir la diagonale avec 0
+        for (let i = 0; i < matrix.length; i++) {
+          matrix[i][i] = 0
+        }
+
+        // Ajouter les arêtes
+        visualizationData.edges.forEach((edge) => {
+          const sourceIdx = visualizationData.node_names.indexOf(edge.source)
+          const targetIdx = visualizationData.node_names.indexOf(edge.target)
+          if (sourceIdx !== -1 && targetIdx !== -1) {
+            matrix[sourceIdx][targetIdx] = edge.weight
+          }
+        })
+
+        formData = {
+          methode: method,
+          matrice: matrix,
+          nbrMatrice: visualizationData.node_names.length,
+        }
+      }
+
+      if (formData) {
+        result = method === "min" ? await MinDemoucron(formData) : await MaxDemoucron(formData)
+        setResults(result)
+      }
+    } catch (error) {
+      console.error("Calculation error:", error)
+      setResults({ error: "Erreur lors du calcul: " + error.message })
+    } finally {
+      setIsCalculating(false)
+    }
+  }
+
+  const canCalculate =
+    calculationData &&
+    ((calculationData.type === "matrix" && calculationData.matrix && calculationData.matrix.length > 0) ||
+      (calculationData.type === "graph" && visualizationData.nodes.length > 0))
 
   return (
     <div className="app-container">
       <Header theme={theme} toggleTheme={toggleTheme} />
-      
-      <main className="main-content">
-        <motion.div
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="hero-section"
-        >
-          <div className="hero-background">
-            <div className="hero-gradient"></div>
-            <div className="hero-pattern"></div>
-          </div>
-          <div className="hero-content">
-            <motion.h1 
-              className="hero-title"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              Algorithme de Demoucron
-            </motion.h1>
-            <motion.p 
-              className="hero-description"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              Découvrez les chemins optimaux avec une interface moderne et intuitive. 
-              Créez votre graphe ou saisissez une matrice pour commencer l'analyse.
-            </motion.p>
-            <motion.div
-              className="hero-stats"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              <div className="stat-item">
-                <div className="stat-number">∞</div>
-                <div className="stat-label">Possibilités</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-number">O(n³)</div>
-                <div className="stat-label">Complexité</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-number">2</div>
-                <div className="stat-label">Modes</div>
-              </div>
-            </motion.div>
-          </div>
-        </motion.div>
 
+      <main className="main-content">
+        
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -164,7 +152,12 @@ function App() {
               whileTap={{ scale: 0.98 }}
             >
               <svg className="mode-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v4a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a1 1 0 01-1-1V9a1 1 0 011-1h1a2 2 0 100-4H4a1 1 0 01-1-1V4a1 1 0 011-1h3a1 1 0 001-1v-1a2 2 0 114 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 4a2 2 0 114 0v4a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a1 1 0 01-1-1V9a1 1 0 011-1h1a2 2 0 100-4H4a1 1 0 01-1-1V4a1 1 0 011-1h3a1 1 0 001-1v-1a2 2 0 114 0z"
+                />
               </svg>
               <span>Éditeur de Graphe</span>
               <div className="mode-badge">Interactif</div>
@@ -176,7 +169,12 @@ function App() {
               whileTap={{ scale: 0.98 }}
             >
               <svg className="mode-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
               </svg>
               <span>Entrée Matricielle</span>
               <div className="mode-badge">Précis</div>
@@ -211,7 +209,7 @@ function App() {
               </motion.div>
             )}
           </AnimatePresence>
-          
+
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -245,7 +243,7 @@ function App() {
               </div>
             </div>
           </div>
-          
+
           <div className="method-selection">
             <div className="method-options">
               <motion.label
@@ -263,7 +261,12 @@ function App() {
                 <div className="method-content">
                   <div className="method-icon min">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                      />
                     </svg>
                   </div>
                   <div className="method-info">
@@ -273,7 +276,7 @@ function App() {
                 </div>
                 <div className="method-indicator"></div>
               </motion.label>
-              
+
               <motion.label
                 className={`method-option ${method === "max" ? "selected" : ""}`}
                 whileHover={{ scale: 1.02 }}
@@ -289,7 +292,12 @@ function App() {
                 <div className="method-content">
                   <div className="method-icon max">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 10l7-7m0 0l7 7m-7-7v18"
+                      />
                     </svg>
                   </div>
                   <div className="method-info">
@@ -300,7 +308,7 @@ function App() {
                 <div className="method-indicator"></div>
               </motion.label>
             </div>
-            
+
             <motion.button
               onClick={handleCalculate}
               disabled={!canCalculate || isCalculating}
@@ -329,7 +337,12 @@ function App() {
                     className="btn-content"
                   >
                     <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
                     </svg>
                     <span>Calculer les Chemins Optimaux</span>
                   </motion.div>
@@ -352,7 +365,6 @@ function App() {
                 results={results}
                 theme={theme}
                 nodes={visualizationData.nodes}
-                edges={visualizationData.edges}
                 nodeNames={visualizationData.node_names}
               />
             </motion.div>
@@ -360,7 +372,7 @@ function App() {
         </AnimatePresence>
       </main>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App

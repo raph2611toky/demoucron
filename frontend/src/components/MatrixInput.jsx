@@ -1,40 +1,54 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+"use client"
+
+import { useState } from "react"
+import { motion } from "framer-motion"
+import "./MatrixInput.css"
 
 function MatrixInput({ onMatrixUpdate, theme }) {
-  const [nbrMatrice, setNbrMatrice] = useState(0);
-  const [matrix, setMatrix] = useState([]);
+  const [nbrMatrice, setNbrMatrice] = useState(0)
+  const [matrix, setMatrix] = useState([])
 
   const handleChange = (e) => {
-    const value = parseInt(e.target.value, 10);
-    setNbrMatrice(value);
+    const value = Number.parseInt(e.target.value, 10)
+    setNbrMatrice(value)
     if (value > 0) {
-      const newMatrix = Array(value).fill().map(() => Array(value).fill(null));
-      setMatrix(newMatrix);
-      const node_names = Array.from({ length: value }, (_, i) => (i + 1).toString());
-      onMatrixUpdate({ matrix: newMatrix, node_names });
+      const newMatrix = Array(value)
+        .fill()
+        .map(() => Array(value).fill(null))
+      // Mettre la diagonale à 0
+      for (let i = 0; i < value; i++) {
+        newMatrix[i][i] = 0
+      }
+      setMatrix(newMatrix)
+      const node_names = Array.from({ length: value }, (_, i) => (i + 1).toString())
+      onMatrixUpdate({ matrix: newMatrix, node_names })
     } else {
-      setMatrix([]);
-      onMatrixUpdate(null);
+      setMatrix([])
+      onMatrixUpdate(null)
     }
-  };
+  }
 
   const handleMatrixChange = (i, j, value) => {
-    const newValue = value === "" ? null : parseFloat(value);
+    const newValue = value === "" ? null : Number.parseFloat(value)
     const newMatrix = matrix.map((row, rowIndex) =>
-      rowIndex === i ? row.map((cell, colIndex) => (colIndex === j ? newValue : cell)) : row
-    );
-    setMatrix(newMatrix);
-    const node_names = Array.from({ length: nbrMatrice }, (_, i) => (i + 1).toString());
-    onMatrixUpdate({ matrix: newMatrix, node_names });
-  };
+      rowIndex === i ? row.map((cell, colIndex) => (colIndex === j ? newValue : cell)) : row,
+    )
+    setMatrix(newMatrix)
+    const node_names = Array.from({ length: nbrMatrice }, (_, i) => (i + 1).toString())
+    onMatrixUpdate({ matrix: newMatrix, node_names })
+  }
 
   return (
-    <div className="matrix-input">
+    <div className={`matrix-input ${theme}`}>
       <div className="panel-header">
         <div className="panel-icon">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
           </svg>
         </div>
         <div className="panel-title">
@@ -61,7 +75,9 @@ function MatrixInput({ onMatrixUpdate, theme }) {
               className="form-input size-input"
             />
             <div className="size-info">
-              <span>Matrice {nbrMatrice}×{nbrMatrice}</span>
+              <span>
+                Matrice {nbrMatrice}×{nbrMatrice}
+              </span>
             </div>
           </div>
         </div>
@@ -80,7 +96,9 @@ function MatrixInput({ onMatrixUpdate, theme }) {
                 <tr>
                   <th className="matrix-corner"></th>
                   {Array.from({ length: nbrMatrice }, (_, i) => (
-                    <th key={i} className="matrix-header">{i + 1}</th>
+                    <th key={i} className="matrix-header">
+                      {i + 1}
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -94,8 +112,9 @@ function MatrixInput({ onMatrixUpdate, theme }) {
                           type="number"
                           value={cell === null ? "" : cell}
                           onChange={(e) => handleMatrixChange(i, j, e.target.value)}
-                          className="matrix-input"
+                          className="matrix-input-field"
                           placeholder={i === j ? "0" : "∞"}
+                          disabled={i === j}
                         />
                       </td>
                     ))}
@@ -104,11 +123,11 @@ function MatrixInput({ onMatrixUpdate, theme }) {
               </tbody>
             </table>
           </div>
-          
+
           <div className="matrix-legend">
             <div className="legend-item">
               <div className="legend-color diagonal"></div>
-              <span>Diagonale (distance à soi-même)</span>
+              <span>Diagonale (distance à soi-même = 0)</span>
             </div>
             <div className="legend-item">
               <div className="legend-color infinity"></div>
@@ -122,7 +141,7 @@ function MatrixInput({ onMatrixUpdate, theme }) {
         </motion.div>
       )}
     </div>
-  );
+  )
 }
 
-export default MatrixInput;
+export default MatrixInput

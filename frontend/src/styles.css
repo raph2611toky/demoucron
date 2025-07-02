@@ -2037,6 +2037,7 @@ body {
 .no-path h4 {
   font-size: 1.25rem;
   font-weight: 600;
+  color: var(--gray-900);
   margin-bottom: var(--space-2);
 }
 
@@ -2250,3 +2251,174 @@ body {
   }
 }
 
+.optimal-path-graph {
+  width: 100%;
+  height: 450px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--gray-50);
+  box-shadow: var(--shadow-md);
+}
+
+.dark .optimal-path-graph {
+  background: var(--gray-800);
+}
+
+.react-flow-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.react-flow__node {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+}
+
+.react-flow__edge {
+  stroke-opacity: 0.8;
+}
+
+.paths-result {
+  padding: var(--space-4);
+}
+
+.paths-header {
+  margin-bottom: var(--space-4);
+}
+
+.paths-header h3 {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.dark .paths-header h3 {
+  color: var(--gray-100);
+}
+
+.paths-header p {
+  font-size: var(--text-sm);
+  color: var(--gray-600);
+}
+
+.dark .paths-header p {
+  color: var(--gray-400);
+}
+
+.no-path-icon {
+  display: inline-flex;
+  padding: var(--space-3);
+  background: var(--red-100);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-3);
+}
+
+.dark .no-path-icon {
+  background: var(--red-900);
+}
+
+.dark .no-path h4 {
+  color: var(--gray-100);
+}
+
+
+.dark .no-path p {
+  color: var(--gray-400);
+}
+
+.optimal-path-graph {
+  width: 100%;
+  height: 450px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--gray-50);
+  box-shadow: var(--shadow-md);
+}
+
+.dark .optimal-path-graph {
+  background: var(--gray-800);
+}
+
+.react-flow-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.react-flow__node {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  cursor: move; /* Indique que les nœuds sont déplaçables */
+}
+
+.react-flow__edge {
+  stroke-opacity: 0.8;
+}
+
+.paths-result {
+  padding: var(--space-4);
+}
+
+.paths-header {
+  margin-bottom: var(--space-4);
+}
+
+.paths-header h3 {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.dark .paths-header h3 {
+  color: var(--gray-100);
+}
+
+.paths-header p {
+  font-size: var(--text-sm);
+  color: var(--gray-600);
+}
+
+.dark .paths-header p {
+  color: var(--gray-400);
+}
+
+.no-path {
+  text-align: center;
+  padding: var(--space-6);
+}
+
+.no-path-icon {
+  display: inline-flex;
+  padding: var(--space-3);
+  background: var(--red-100);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-3);
+}
+
+.dark .no-path-icon {
+  background: var(--red-900);
+}
+
+.no-path h4 {
+  font-size: var(--text-lg);
+  font-weight: 500;
+  color: var(--gray-900);
+}
+
+.dark .no-path h4 {
+  color: var(--gray-100);
+}
+
+.no-path p {
+  font-size: var(--text-sm);
+  color: var(--gray-600);
+}
+
+.dark .no-path p {
+  color: var(--gray-400);
+}

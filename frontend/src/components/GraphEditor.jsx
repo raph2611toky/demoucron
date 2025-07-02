@@ -29,10 +29,6 @@ function GraphEditor({ onUpdate, theme }) {
     }
   }, []);
 
-  useEffect(() => {
-    loadGraphs();
-  }, [loadGraphs]);
-
   const loadGraphDetails = useCallback(async (graphId) => {
     if (!graphId) {
       setGraphId(null);
@@ -63,6 +59,10 @@ function GraphEditor({ onUpdate, theme }) {
       setLoading(false);
     }
   }, [onUpdate]);
+
+  useEffect(() => {
+    loadGraphs();
+  }, [loadGraphs]);
 
   useEffect(() => {
     loadGraphDetails(selectedGraph);
@@ -140,6 +140,40 @@ function GraphEditor({ onUpdate, theme }) {
       setTarget("");
       setWeight("");
       setNotification({ show: true, message: `Arc de '${source}' à '${target}' ajouté avec succès`, type: "success" });
+    } catch (error) {
+      setNotification({ show: true, message: `Erreur de connexion: ${error.message}`, type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteNode = async (sommetName) => {
+    if (!graphId) {
+      setNotification({ show: true, message: "Aucun graphe sélectionné", type: "error" });
+      return;
+    }
+    setLoading(true);
+    try {
+      await axios.delete(`http://localhost:8000/api/graphs/${graphId}/delete_sommet/${sommetName}/`);
+      await loadGraphDetails(graphId);
+      setNotification({ show: true, message: `Sommet '${sommetName}' supprimé avec succès`, type: "success" });
+    } catch (error) {
+      setNotification({ show: true, message: `Erreur de connexion: ${error.message}`, type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteEdge = async (sourceName, targetName) => {
+    if (!graphId) {
+      setNotification({ show: true, message: "Aucun graphe sélectionné", type: "error" });
+      return;
+    }
+    setLoading(true);
+    try {
+      await axios.delete(`http://localhost:8000/api/graphs/${graphId}/delete_arc/${sourceName}/${targetName}/`);
+      await loadGraphDetails(graphId);
+      setNotification({ show: true, message: `Arc de '${sourceName}' à '${targetName}' supprimé avec succès`, type: "success" });
     } catch (error) {
       setNotification({ show: true, message: `Erreur de connexion: ${error.message}`, type: "error" });
     } finally {
@@ -350,6 +384,13 @@ function GraphEditor({ onUpdate, theme }) {
                         {getNodeTypeIcon(n.type)}
                         <span className="node-name">{n.name}</span>
                         <span className="node-type">{n.type}</span>
+                        <button
+                          onClick={() => deleteNode(n.name)}
+                          disabled={loading}
+                          className="btn btn-danger btn-sm"
+                        >
+                          Supprimer
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -374,6 +415,13 @@ function GraphEditor({ onUpdate, theme }) {
                         </svg>
                         <span className="edge-target">{e.target}</span>
                         <span className="edge-weight">({e.weight})</span>
+                        <button
+                          onClick={() => deleteEdge(e.source, e.target)}
+                          disabled={loading}
+                          className="btn btn-danger btn-sm"
+                        >
+                          Supprimer
+                        </button>
                       </div>
                     ))}
                   </div>

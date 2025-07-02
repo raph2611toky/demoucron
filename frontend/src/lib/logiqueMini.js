@@ -1,147 +1,116 @@
-// src/lib/logiqueMini.js
 export async function MinDemoucron(formData) {
-  const { methode, matrice, nbrMatrice } = formData
+  const { methode, matrice, nbrMatrice } = formData;
 
-  if (!methode) {
-    return { 
-      steps: [], 
-      finalMatrix: [], 
-      predecessors: [], 
-      optimalPaths: {}, 
-      error: "Veuillez sélectionner une méthode (min ou max)." 
-    }
-  }
-  
-  if (nbrMatrice <= 0 || !matrice || matrice.length !== nbrMatrice || matrice[0].length !== nbrMatrice) {
-    return { 
-      steps: [], 
-      finalMatrix: [], 
-      predecessors: [], 
-      optimalPaths: {}, 
-      error: "Matrice invalide ou nombre de matrices incorrect." 
-    }
+  if (!methode || methode !== "min" || nbrMatrice <= 0 || !matrice || matrice.length !== nbrMatrice || matrice.some(row => row.length !== nbrMatrice)) {
+    return {
+      steps: [],
+      finalMatrix: [],
+      predecessors: [],
+      optimalPaths: {},
+      error: "Données d'entrée invalides."
+    };
   }
 
-  const currentMatrix = matrice.map(row => [...row])
-  const steps = []
-  const predecessors = Array.from({ length: nbrMatrice }, (_, i) =>
-    Array.from({ length: nbrMatrice }, (_, j) => (currentMatrix[i][j] !== Infinity && i !== j ? i : -1))
-  )
+  const currentMatrix = matrice.map(row => [...row]);
+  const steps = [];
 
-  for (let k = 2; k <= nbrMatrice - 1; k++) {
-    const W = []
-    const V = []
-    const kIdx = k - 1
+  const predecessors = Array.from({ length: nbrMatrice }, () =>
+    Array(nbrMatrice).fill(-1)
+  );
 
-    const verticesToK = []
-    for (let i = 1; i <= nbrMatrice; i++) {
-      const iIdx = i - 1
-      if (i !== k && currentMatrix[iIdx][kIdx] !== Infinity) {
-        verticesToK.push(i)
+  // Initialiser les prédécesseurs pour les arêtes directes
+  for (let i = 0; i < nbrMatrice; i++) {
+    for (let j = 0; j < nbrMatrice; j++) {
+      if (i !== j && currentMatrix[i][j] !== null && currentMatrix[i][j] !== Infinity) {
+        predecessors[i][j] = i;
       }
     }
+  }
 
-    const verticesFromK = []
-    for (let j = 1; j <= nbrMatrice; j++) {
-      const jIdx = j - 1
-      if (j !== k && currentMatrix[kIdx][jIdx] !== Infinity) {
-        verticesFromK.push(j)
-      }
-    }
+  steps.push({
+    k: 0,
+    W: [],
+    V: [],
+    matrix: matrice.map(row => [...row]),
+    description: "Matrice initiale"
+  });
 
-    for (const i of verticesToK) {
-      for (const j of verticesFromK) {
-        const iIdx = i - 1
-        const jIdx = j - 1
+  // Demoucron : on ne prend pas k = 0 ni k = n - 1
+  for (let k = 1; k < nbrMatrice - 1; k++) {
+    const W = [];
+    const V = [];
 
-        const V_ik = currentMatrix[iIdx][kIdx]
-        const V_kj = currentMatrix[kIdx][jIdx]
-        let W_value
+    for (let i = 0; i < nbrMatrice; i++) {
+      for (let j = 0; j < nbrMatrice; j++) {
+        if (i === j || currentMatrix[i][k] === Infinity || currentMatrix[k][j] === Infinity) continue;
 
-        if (V_ik === Infinity || V_kj === Infinity) {
-          W_value = Infinity
-        } else {
-          W_value = V_ik + V_kj
-        }
+        const direct = currentMatrix[i][j];
+        const viaK = currentMatrix[i][k] + currentMatrix[k][j];
+        const newValue = Math.min(direct, viaK);
 
         W.push({
-          i,
-          j,
-          value: W_value,
-          formula: `W_${i}${j}^(${k-1}) = V_${i}${k}^(${k-1}) + V_${k}${j}^(${k-1}) = ${V_ik === Infinity ? "+∞" : V_ik} + ${V_kj === Infinity ? "+∞" : V_kj} = ${W_value === Infinity ? "+∞" : W_value}`
-        })
+          i: i + 1,
+          j: j + 1,
+          value: viaK,
+          formula: `W_${i + 1}${j + 1}^(${k}) = V_${i + 1}${k + 1}^(${k}) + V_${k + 1}${j + 1}^(${k}) = ${currentMatrix[i][k]} + ${currentMatrix[k][j]} = ${viaK}`
+        });
 
-        const V_ij = currentMatrix[iIdx][jIdx]
-        const new_V_value = methode === "min" ? Math.min(W_value, V_ij) : Math.max(W_value, V_ij)
+        if (newValue < direct) {
+          currentMatrix[i][j] = newValue;
+          predecessors[i][j] = predecessors[k][j];
+        }
 
         V.push({
-          i,
-          j,
-          value: new_V_value,
-          formula: `V_${i}${j}^(${k}) = ${methode === "min" ? "MIN" : "MAX"}(W_${i}${j}^(${k-1}}, V_${i}${j}^(${k-1})) = ${methode === "min" ? "MIN" : "MAX"}(${W_value === Infinity ? "+∞" : W_value}, ${V_ij === Infinity ? "+∞" : V_ij}) = ${new_V_value === Infinity ? "+∞" : new_V_value}`
-        })
-
-        if ((methode === "min" && new_V_value < currentMatrix[iIdx][jIdx]) ||
-            (methode === "max" && new_V_value > currentMatrix[iIdx][jIdx])) {
-          currentMatrix[iIdx][jIdx] = new_V_value
-          predecessors[iIdx][jIdx] = predecessors[kIdx][jIdx]
-        }
+          i: i + 1,
+          j: j + 1,
+          value: newValue,
+          formula: `V_${i + 1}${j + 1}^(${k + 1}) = MIN(W_${i + 1}${j + 1}^(${k}), V_${i + 1}${j + 1}^(${k})) = MIN(${viaK}, ${direct}) = ${newValue}`
+        });
       }
     }
 
-    const matrixCopy = currentMatrix.map(row => [...row])
-    steps.push({ k, W, V, matrix: matrixCopy })
+    steps.push({
+      k: k + 1,
+      W,
+      V,
+      matrix: currentMatrix.map(row => [...row])
+    });
   }
 
-  // Construire les chemins optimaux en partant de la dernière colonne
-  const optimalPaths = {}
+  // Reconstruction des chemins uniquement depuis le sommet initial (nœud 0)
+  const getPath = (start, end) => {
+    if (currentMatrix[start][end] === Infinity || predecessors[start][end] === -1) return [];
+    const path = [];
+    let current = end;
 
-  const findOptimalPathFromEnd = (end, start) => {
-    const path = [end + 1]
-    let currentCol = end
-
-    while (currentCol >= 0) {
-      let optimalValue = methode === "min" ? Infinity : -Infinity
-      let optimalRow = -1
-
-      for (let i = 0; i < nbrMatrice; i++) {
-        if (i !== currentCol) {
-          const value = currentMatrix[i][currentCol]
-          if (methode === "min" && value < optimalValue) {
-            optimalValue = value
-            optimalRow = i
-          } else if (methode === "max" && value > optimalValue && value !== Infinity) {
-            optimalValue = value
-            optimalRow = i
-          }
-        }
-      }
-
-      if (optimalRow === -1 || optimalValue === Infinity) break
-      if (path.includes(optimalRow + 1)) break
-
-      path.unshift(optimalRow + 1)
-      if (start !== undefined && optimalRow === start) break
-      currentCol = optimalRow
+    while (current !== start) {
+      if (path.includes(current + 1)) return []; // éviter les boucles
+      path.unshift(current + 1);
+      current = predecessors[start][current];
+      if (current === -1) return [];
     }
 
-    return path
-  }
+    path.unshift(start + 1);
+    return path;
+  };
 
-  const lastColumn = nbrMatrice - 1
-  for (let i = 0; i < nbrMatrice; i++) {
-    if (i !== lastColumn && currentMatrix[i][lastColumn] !== Infinity) {
-      const path = findOptimalPathFromEnd(lastColumn, i)
-      if (path.length > 1 && path[0] === i + 1) {
-        optimalPaths[`${i + 1}-${lastColumn + 1}`] = path
+  const optimalPaths = {};
+  const start = 0;
+  for (let end = 0; end < nbrMatrice; end++) {
+    if (start !== end && currentMatrix[start][end] !== Infinity) {
+      const path = getPath(start, end);
+      if (path.length > 1 && end === nbrMatrice-1) {
+        optimalPaths[`${start + 1}-${end + 1}`] = path;
       }
     }
   }
+
 
   return {
     steps,
     finalMatrix: currentMatrix,
     predecessors,
-    optimalPaths
-  }
+    optimalPaths,
+    method: methode
+  };
 }

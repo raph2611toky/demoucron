@@ -86,14 +86,10 @@ class GraphDetailView(APIView):
     def get(self, request, graph_id):
         try:
             graph = Graph.objects.get(pk=graph_id)
-            nodes = list(graph.sommets.all())
-            edges = list(graph.arcs.all())
             serializer = GraphSerializer(graph)
             
             # Construire la matrice initiale (D1) et les noms des nœuds
-            nodes_data = [{'name': node.name} for node in nodes]
-            edges_data = [{'source': edge.source.name, 'target': edge.target.name, 'weight': edge.weight} for edge in edges]
-            initial_matrix, node_names = build_adjacency_matrix(nodes_data, edges_data)
+            initial_matrix, node_names = build_adjacency_matrix(graph)
             
             # Ajouter node_names et initial_matrix à la réponse
             response_data = serializer.data
@@ -191,7 +187,7 @@ class AddArcView(APIView):
 
 class RunDemoucronView(APIView):
     @swagger_auto_schema(
-        operation_description="Exécute l'algorithme de Demoucron sur un graphe spécifié pour calculer les chemins minimaux, avec toutes les étapes et calculs.",
+        operation_description="Exécute l'algorithme de Demoucron sur un graphe spécifié pour calculer le chemin optimal du nœud initial au nœud final.",
         responses={
             200: openapi.Schema(
                 type=openapi.TYPE_OBJECT,
@@ -267,10 +263,16 @@ class RunDemoucronView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            nodes_data = [{'name': node.name} for node in nodes]
-            edges_data = [{'source': edge.source.name, 'target': edge.target.name, 'weight': edge.weight} for edge in edges]
-            matrix, node_names = build_adjacency_matrix(nodes_data, edges_data)
-            steps, paths = demoucron_algorithm(matrix, node_names)
+            # Vérifier la présence d'un nœud initial et final
+            if not graph.sommets.filter(type='initial').exists() or not graph.sommets.filter(type='final').exists():
+                return Response(
+                    {'error': 'Le graphe doit avoir un nœud initial et un nœud final'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Construire la matrice et les noms des nœuds
+            initial_matrix, node_names = build_adjacency_matrix(graph)
+            steps, paths = demoucron_algorithm(initial_matrix, node_names)
 
             return Response({
                 'steps': steps,
@@ -280,7 +282,7 @@ class RunDemoucronView(APIView):
             })
         except Graph.DoesNotExist:
             return Response({'error': 'Graphe introuvable'}, status=status.HTTP_404_NOT_FOUND)
-        
+
 class MatrixDemoucronView(APIView):
     @swagger_auto_schema(
         operation_description="Exécute l'algorithme de Demoucron sur une matrice fournie avec la méthode spécifiée (min ou max).",
@@ -322,3 +324,54 @@ class MatrixDemoucronView(APIView):
             'edges': [],
             'methode': method
         })
+
+
+class DeleteSommetView(APIView):
+    @swagger_auto_schema(
+        operation_description="Supprime un sommet d'un graphe spécifié par son ID et le nom du sommet.",
+        responses={
+            204: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={'message': openapi.Schema(type=openapi.TYPE_STRING)}
+            ),
+            404: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={'error': openapi.Schema(type=openapi.TYPE_STRING)}
+            )
+        }
+    )
+    def delete(self, request, graph_id, sommet_name):
+        try:
+            graph = Graph.objects.get(pk=graph_id)
+            sommet = graph.sommets.get(name=sommet_name)
+            sommet.delete()
+            return Response({'message': 'Sommet supprimé avec succès'}, status=status.HTTP_204_NO_CONTENT)
+        except Graph.DoesNotExist:
+            return Response({'error': 'Graphe introuvable'}, status=status.HTTP_404_NOT_FOUND)
+        except Sommet.DoesNotExist:
+            return Response({'error': 'Sommet introuvable'}, status=status.HTTP_404_NOT_FOUND)
+        
+class DeleteArcView(APIView):
+    @swagger_auto_schema(
+        operation_description="Supprime un arc d'un graphe spécifié par son ID, la source et la cible.",
+        responses={
+            204: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={'message': openapi.Schema(type=openapi.TYPE_STRING)}
+            ),
+            404: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={'error': openapi.Schema(type=openapi.TYPE_STRING)}
+            )
+        }
+    )
+    def delete(self, request, graph_id, source_name, target_name):
+        try:
+            graph = Graph.objects.get(pk=graph_id)
+            arc = graph.arcs.get(source__name=source_name, target__name=target_name)
+            arc.delete()
+            return Response({'message': 'Arc supprimé avec succès'}, status=status.HTTP_204_NO_CONTENT)
+        except Graph.DoesNotExist:
+            return Response({'error': 'Graphe introuvable'}, status=status.HTTP_404_NOT_FOUND)
+        except Arc.DoesNotExist:
+            return Response({'error': 'Arc introuvable'}, status=status.HTTP_404_NOT_FOUND)

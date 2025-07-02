@@ -3,58 +3,18 @@
 import React, { useState, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import WijGraph from "./WijGraph.jsx"
-import ReactFlow, { Background, Controls, useNodesState, useEdgesState, getBezierPath } from "reactflow"
+import ReactFlow, { Background, Controls, useNodesState, useEdgesState } from "reactflow"
 import "reactflow/dist/style.css"
 import "./ResultsDisplay.css"
-
-// Composant d'arête personnalisé avec courbe organique
-const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style = {}, markerEnd, label, animated }) => {
-  // Calculer des points de contrôle pour une courbe plus organique
-  const controlPointOffset = Math.random() * 100 + 50
-  const curvature = 0.3 + Math.random() * 0.4
-  
-  // Ajouter de la variation pour éviter les superpositions
-  const randomOffset = (Math.random() - 0.5) * 80
-  
-  const [edgePath] = getBezierPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
-    curvature
-  })
-
-  return (
-    <>
-      <path
-        id={id}
-        style={{
-          ...style,
-          strokeLinecap: "round",
-          strokeLinejoin: "round",
-          filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
-          strokeDasharray: animated ? "5,5" : "none",
-          animation: animated ? "dash 1s linear infinite" : "none"
-        }}
-        className="react-flow__edge-path"
-        d={edgePath}
-        markerEnd={markerEnd}
-      />
-      {label && (
-        <text>
-          <textPath href={`#${id}`} style={{ fontSize: 12, fill: style.stroke, fontWeight: "bold" }} startOffset="50%" textAnchor="middle">
-            {label}
-          </textPath>
-        </text>
-      )}
-    </>
-  )
-}
+import CustomNode from "./CustomNode.jsx"
+import CustomEdgeComponent from "./CustomEdge.jsx"
 
 const edgeTypes = {
-  custom: CustomEdge,
+  custom: CustomEdgeComponent, // Utiliser le même composant que les autres graphiques
+}
+
+const nodeTypes = {
+  custom: CustomNode,
 }
 
 function MatrixDisplay({ matrix, nodeNames, title, optimalPaths = {} }) {
@@ -183,22 +143,12 @@ function OptimalPathGraph({ optimalPaths, nodes, nodeNames, finalMatrix, theme }
 
       rfNodes.push({
         id: `node-${index}`,
-        data: { label: name },
-        position: { x, y },
-        style: {
-          background: currentTheme.nodeNormal,
-          color: "white",
-          borderRadius: "50%",
-          width: "45px",
-          height: "45px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontWeight: "bold",
-          fontSize: "14px",
-          boxShadow: currentTheme.shadowNormal,
-          border: "2px solid #ffffff",
+        type: "custom",
+        data: {
+          label: name,
+          type: "normal",
         },
+        position: { x, y },
         draggable: true,
       })
     })
@@ -211,6 +161,7 @@ function OptimalPathGraph({ optimalPaths, nodes, nodeNames, finalMatrix, theme }
             if (value !== Number.POSITIVE_INFINITY && i !== j && value !== null && !isNaN(value)) {
               // Vérifier si cette arête fait partie d'un chemin optimal
               let isOptimal = false
+              // Vérifier que optimalPaths existe et est un objet avant de l'utiliser
               if (optimalPaths && typeof optimalPaths === "object") {
                 Object.entries(optimalPaths).forEach(([key, path]) => {
                   if (path && Array.isArray(path) && path.length > 1) {
@@ -233,10 +184,14 @@ function OptimalPathGraph({ optimalPaths, nodes, nodeNames, finalMatrix, theme }
                 style: {
                   stroke: isOptimal ? currentTheme.optimalEdgeColor : currentTheme.edgeColor,
                   strokeWidth: isOptimal ? 3.5 : 2.5,
+                  strokeLinecap: "round",
+                  strokeLinejoin: "round",
                 },
                 markerEnd: {
                   type: "arrowclosed",
                   color: isOptimal ? currentTheme.optimalEdgeColor : currentTheme.edgeColor,
+                  width: 20,
+                  height: 20,
                 },
                 animated: isOptimal,
               })
@@ -258,6 +213,7 @@ function OptimalPathGraph({ optimalPaths, nodes, nodeNames, finalMatrix, theme }
             nodes={graphNodes}
             edges={graphEdges}
             edgeTypes={edgeTypes}
+            nodeTypes={nodeTypes}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             fitView
@@ -294,6 +250,7 @@ function OptimalPathGraph({ optimalPaths, nodes, nodeNames, finalMatrix, theme }
 
 // Le reste du composant ResultsDisplay reste identique...
 function ResultsDisplay({ results, theme, nodes, nodeNames }) {
+  
   const [expandedSteps, setExpandedSteps] = useState({})
   const [activeTab, setActiveTab] = useState("steps")
 
@@ -316,7 +273,7 @@ function ResultsDisplay({ results, theme, nodes, nodeNames }) {
       </div>
     )
   }
-
+  console.log(results)
   const { steps, finalMatrix, optimalPaths, method } = results
 
   const toggleStep = (index) => {
@@ -332,7 +289,7 @@ function ResultsDisplay({ results, theme, nodes, nodeNames }) {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
             />
           </svg>
         </div>
@@ -437,7 +394,7 @@ function ResultsDisplay({ results, theme, nodes, nodeNames }) {
                                   currentMatrix={step.matrix}
                                   stepIndex={index}
                                   nodes={nodes}
-                                  nodeNames={nodeNames}
+                                  nodeNames={nodeNames} // Passer nodeNames à WijGraph
                                 />
                               </div>
                             )}

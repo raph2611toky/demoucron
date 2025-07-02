@@ -1,74 +1,31 @@
 "use client"
 
 import { useEffect } from "react"
-import ReactFlow, { Controls, Background, useNodesState, useEdgesState, getBezierPath } from "reactflow"
+import ReactFlow, { Controls, Background, useNodesState, useEdgesState } from "reactflow"
 import "reactflow/dist/style.css"
 import { motion } from "framer-motion"
 import "./GraphVisualizer.css"
-
-// Composant d'arête personnalisé avec courbe organique
-const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style = {}, markerEnd, label }) => {
-  // Calculer des points de contrôle pour une courbe plus organique
-  const controlPointOffset = Math.random() * 100 + 50 // Variation aléatoire
-  const curvature = 0.3 + Math.random() * 0.4 // Courbure variable
-  
-  // Ajouter de la variation pour éviter les superpositions
-  const randomOffset = (Math.random() - 0.5) * 80
-  const midX = (sourceX + targetX) / 2 + randomOffset
-  const midY = (sourceY + targetY) / 2 + randomOffset
-  
-  const [edgePath] = getBezierPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
-    curvature
-  })
-
-  return (
-    <>
-      <path
-        id={id}
-        style={{
-          ...style,
-          strokeLinecap: "round",
-          strokeLinejoin: "round",
-          filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))"
-        }}
-        className="react-flow__edge-path"
-        d={edgePath}
-        markerEnd={markerEnd}
-      />
-      {label && (
-        <text>
-          <textPath href={`#${id}`} style={{ fontSize: 12, fill: style.stroke }} startOffset="50%" textAnchor="middle">
-            {label}
-          </textPath>
-        </text>
-      )}
-    </>
-  )
-}
+import CustomEdge from "./CustomEdge.jsx"
+import CustomNode from "./CustomNode.jsx"
 
 const edgeTypes = {
   custom: CustomEdge,
+}
+
+const nodeTypes = {
+  custom: CustomNode,
 }
 
 function GraphVisualizer({ nodes: inputNodes, edges: inputEdges, theme, nodeNames, initialMatrix }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
 
-  // Générer le graphe à partir des données d'entrée
   useEffect(() => {
     if (initialMatrix && initialMatrix.length > 0 && nodeNames && nodeNames.length > 0) {
-      // Générer à partir de la matrice
       const newNodes = []
       const newEdges = []
       const nbrMatrice = initialMatrix.length
 
-      // Créer tous les nœuds avec positionnement en cercle
       const centerX = 300
       const centerY = 250
       const radius = Math.min(150, 50 + nbrMatrice * 20)
@@ -80,27 +37,16 @@ function GraphVisualizer({ nodes: inputNodes, edges: inputEdges, theme, nodeName
 
         newNodes.push({
           id: `node-${i}`,
-          data: { label: nodeNames[i] || `${i + 1}` },
+          type: "custom",
+          data: {
+            label: nodeNames[i] || `${i + 1}`,
+            type: "normal",
+          },
           position: { x, y },
           draggable: true,
-          style: {
-            background: "linear-gradient(135deg, #3b82f6, #06b6d4)",
-            color: "white",
-            borderRadius: "50%",
-            width: "45px",
-            height: "45px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontWeight: "bold",
-            fontSize: "14px",
-            boxShadow: "0 6px 20px rgba(59, 130, 246, 0.3)",
-            border: "2px solid #ffffff",
-          },
         })
       }
 
-      // Créer toutes les arêtes à partir de la matrice avec courbes organiques
       for (let i = 0; i < nbrMatrice; i++) {
         for (let j = 0; j < nbrMatrice; j++) {
           const weight = initialMatrix[i]?.[j]
@@ -130,7 +76,6 @@ function GraphVisualizer({ nodes: inputNodes, edges: inputEdges, theme, nodeName
       setNodes(newNodes)
       setEdges(newEdges)
     } else if (inputNodes && inputNodes.length > 0) {
-      // Générer à partir des nœuds et arêtes d'entrée
       const centerX = 300
       const centerY = 250
       const radius = Math.min(150, 50 + inputNodes.length * 20)
@@ -142,28 +87,13 @@ function GraphVisualizer({ nodes: inputNodes, edges: inputEdges, theme, nodeName
 
         return {
           id: `node-${index}`,
-          data: { label: n.name || `${index + 1}` },
+          type: "custom",
+          data: {
+            label: n.name || `${index + 1}`,
+            type: n.type || "normal",
+          },
           position: { x, y },
           draggable: true,
-          style: {
-            background:
-              n.type === "initial"
-                ? "linear-gradient(135deg, #10b981, #059669)"
-                : n.type === "final"
-                  ? "linear-gradient(135deg, #ef4444, #dc2626)"
-                  : "linear-gradient(135deg, #3b82f6, #06b6d4)",
-            color: "white",
-            borderRadius: "50%",
-            width: "45px",
-            height: "45px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontWeight: "bold",
-            fontSize: "14px",
-            boxShadow: "0 6px 20px rgba(59, 130, 246, 0.3)",
-            border: "2px solid #ffffff",
-          },
         }
       })
 
@@ -300,6 +230,7 @@ function GraphVisualizer({ nodes: inputNodes, edges: inputEdges, theme, nodeName
               nodes={nodes}
               edges={edges}
               edgeTypes={edgeTypes}
+              nodeTypes={nodeTypes}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               fitView

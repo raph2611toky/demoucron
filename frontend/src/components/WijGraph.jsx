@@ -1,84 +1,80 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import ReactFlow, {
-  Controls,
-  Background,
-  useNodesState,
-  useEdgesState,
-  Panel,
-  BackgroundVariant,
-  MarkerType,
-  getBezierPath,
-} from "reactflow"
+import ReactFlow, { Controls, Background, useNodesState, useEdgesState, Panel, BackgroundVariant } from "reactflow"
 
-// Composant d'arête personnalisé avec courbe organique
-const CustomEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style = {}, markerEnd, label, animated }) => {
-  // Calculer des points de contrôle pour une courbe plus organique
-  const curvature = 0.4 + Math.random() * 0.3
-  
-  // Ajouter de la variation pour éviter les superpositions
-  const randomOffset = (Math.random() - 0.5) * 60
-  
-  const [edgePath] = getBezierPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
-    curvature
-  })
-
-  return (
-    <>
-      <path
-        id={id}
-        style={{
-          ...style,
-          strokeLinecap: "round",
-          strokeLinejoin: "round",
-          filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
-          strokeDasharray: animated ? "5,5" : "none",
-          animation: animated ? "dash 1s linear infinite" : "none"
-        }}
-        className="react-flow__edge-path"
-        d={edgePath}
-        markerEnd={markerEnd}
-      />
-      {label && (
-        <text>
-          <textPath href={`#${id}`} style={{ fontSize: 12, fill: style.stroke, fontWeight: "bold" }} startOffset="50%" textAnchor="middle">
-            {label}
-          </textPath>
-        </text>
-      )}
-    </>
-  )
-}
+import CustomEdgeComponent from "./CustomEdge.jsx"
+import WijGraphNode from "./WijGraphNode.jsx"
 
 const edgeTypes = {
-  custom: CustomEdge,
+  custom: CustomEdgeComponent,
 }
 
-export default function WijGraph({ W, k, currentMatrix, stepIndex, nodePositions, setNodePositions }) {
+const nodeTypes = {
+  custom: WijGraphNode,
+}
+
+export default function WijGraph({
+  W = [],
+  k,
+  currentMatrix = [],
+  stepIndex = 0,
+  nodePositions = {},
+  setNodePositions = () => {},
+  nodeNames = [], // Ajouter nodeNames comme prop
+}) {
+  const [nodes, setNodes, onNodesChange] = useNodesState([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [isAnimating, setIsAnimating] = useState(false)
 
-  const generateWijGraph = (W, k, currentMatrix) => {
+  // Vérification de sécurité pour éviter les erreurs
+  const isEmpty = !W || !Array.isArray(W) || W.length === 0 || !currentMatrix || !Array.isArray(currentMatrix)
+
+  useEffect(() => {
+    if (isEmpty) {
+      setNodes([])
+      setEdges([])
+      return
+    }
+
+    const { nodes: newNodes, edges: newEdges } = generateWijGraph(W, k, currentMatrix, nodeNames)
+    setNodes(newNodes)
+    setEdges(newEdges)
+  }, [W, k, currentMatrix, nodeNames, setNodes, setEdges, stepIndex, isAnimating])
+
+  const generateWijGraph = (W, k, currentMatrix, nodeNames) => {
+    // Vérifications de sécurité
+    if (!W || !Array.isArray(W) || !currentMatrix || !Array.isArray(currentMatrix) || !k) {
+      return { nodes: [], edges: [] }
+    }
+
     const nodes = []
     const edges = []
     const uniqueNodes = new Set()
     const uniqueEdges = new Set()
 
+    // Tracker les nœuds sources et cibles
+    const sourceNodes = new Set()
+    const targetNodes = new Set()
+
     // Ajouter le sommet k
     const kNodeId = `node-${k - 1}`
     uniqueNodes.add(kNodeId)
 
-    // Parcourir les calculs de W_ij pour ajouter les sommets et arêtes
+    // Parcourir les calculs de W_ij pour identifier les sources et cibles
     W.forEach(({ i, j }) => {
+      if (!i || !j || i < 1 || j < 1) return // Vérification de sécurité
+
       // Ajouter les sommets i, k, et j
-      uniqueNodes.add(`node-${i - 1}`)
-      uniqueNodes.add(`node-${j - 1}`)
+      const iNodeId = `node-${i - 1}`
+      const jNodeId = `node-${j - 1}`
+
+      uniqueNodes.add(iNodeId)
+      uniqueNodes.add(jNodeId)
+
+      // Marquer les nœuds comme source ou cible
+      sourceNodes.add(iNodeId) // i est source (i -> k)
+      targetNodes.add(jNodeId) // j est cible (k -> j)
 
       // Ajouter les arêtes i -> k et k -> j
       const iIdx = i - 1
@@ -102,7 +98,12 @@ export default function WijGraph({ W, k, currentMatrix, stepIndex, nodePositions
               stroke: "#3a7bd5",
               strokeWidth: 2.5,
             },
-            markerEnd: MarkerType.ArrowClosed,
+            markerEnd: {
+              type: "arrowclosed",
+              color: "#3a7bd5",
+              width: 20,
+              height: 20,
+            },
           })
         }
       }
@@ -124,84 +125,90 @@ export default function WijGraph({ W, k, currentMatrix, stepIndex, nodePositions
               stroke: "#00d2ff",
               strokeWidth: 2.5,
             },
-            markerEnd: MarkerType.ArrowClosed,
+            markerEnd: {
+              type: "arrowclosed",
+              color: "#00d2ff",
+              width: 20,
+              height: 20,
+            },
           })
         }
       }
     })
 
-    // Générer les nœuds à partir des sommets uniques
+    // Organiser les nœuds par catégorie
+    const sourceNodesList = Array.from(sourceNodes).filter((nodeId) => nodeId !== kNodeId)
+    const targetNodesList = Array.from(targetNodes).filter((nodeId) => nodeId !== kNodeId)
+
+    // Dimensions du conteneur
+    const containerWidth = 300
+    const containerHeight = 200
+    const centerX = containerWidth / 2
+    const centerY = containerHeight / 2
+
+    // Générer les nœuds avec positionnement organisé
     uniqueNodes.forEach((nodeId) => {
       const nodeIndex = Number.parseInt(nodeId.split("-")[1])
-      // Positionnement en cercle pour éviter les superpositions
-      const angle = (2 * Math.PI * nodeIndex) / Math.max(uniqueNodes.size, 3)
-      const radius = 80
-      const centerX = 150
-      const centerY = 100
-      
-      const savedPosition = nodePositions[stepIndex]?.[nodeId] || {
-        x: centerX + radius * Math.cos(angle),
-        y: centerY + radius * Math.sin(angle),
+      const isKNode = nodeId === kNodeId
+      const isSource = sourceNodes.has(nodeId) && !isKNode
+      const isTarget = targetNodes.has(nodeId) && !isKNode
+
+      let position = { x: centerX, y: centerY }
+
+      if (isKNode) {
+        // Nœud intermédiaire au centre
+        position = { x: centerX, y: centerY }
+      } else if (isSource) {
+        // Sources à gauche, réparties verticalement
+        const sourceIndex = sourceNodesList.indexOf(nodeId)
+        const totalSources = sourceNodesList.length
+        const leftX = centerX - 120 // 120px à gauche du centre
+
+        if (totalSources === 1) {
+          position = { x: leftX, y: centerY }
+        } else {
+          const spacing = Math.min(80, (containerHeight - 40) / (totalSources - 1))
+          const startY = centerY - ((totalSources - 1) * spacing) / 2
+          position = { x: leftX, y: startY + sourceIndex * spacing }
+        }
+      } else if (isTarget) {
+        // Cibles à droite, réparties verticalement
+        const targetIndex = targetNodesList.indexOf(nodeId)
+        const totalTargets = targetNodesList.length
+        const rightX = centerX + 120 // 120px à droite du centre
+
+        if (totalTargets === 1) {
+          position = { x: rightX, y: centerY }
+        } else {
+          const spacing = Math.min(80, (containerHeight - 40) / (totalTargets - 1))
+          const startY = centerY - ((totalTargets - 1) * spacing) / 2
+          position = { x: rightX, y: startY + targetIndex * spacing }
+        }
       }
 
-      // Appliquer un style différent pour le sommet k
-      const isKNode = nodeId === kNodeId
+      // Utiliser la position sauvegardée si elle existe, sinon utiliser la position calculée
+      const savedPosition = nodePositions[stepIndex]?.[nodeId] || position
+
+      // Utiliser le vrai nom du nœud depuis nodeNames, sinon fallback sur l'index
+      const nodeName = nodeNames && nodeNames[nodeIndex] ? nodeNames[nodeIndex] : `${nodeIndex + 1}`
+
       nodes.push({
         id: nodeId,
+        type: "custom",
         data: {
-          label: `${nodeIndex + 1}`,
+          label: nodeName, // Utiliser le vrai nom
           isKNode: isKNode,
+          type: isKNode ? "special" : "normal",
+          isSource: isSource,
+          isTarget: isTarget,
         },
         position: savedPosition,
         draggable: true,
-        style: isKNode
-          ? {
-              background: "linear-gradient(135deg, #FF4E50, #F9D423)",
-              color: "white",
-              border: "none",
-              borderRadius: "50%",
-              width: "40px",
-              height: "40px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: "bold",
-              fontSize: "16px",
-              boxShadow: "0 4px 15px rgba(255, 78, 80, 0.5)",
-              transition: "all 0.3s ease",
-            }
-          : {
-              background: "linear-gradient(135deg, #3a7bd5, #00d2ff)",
-              color: "white",
-              border: "none",
-              borderRadius: "50%",
-              width: "40px",
-              height: "40px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: "bold",
-              fontSize: "16px",
-              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
-              transition: "all 0.3s ease",
-            },
       })
     })
 
     return { nodes, edges }
   }
-
-  // Initialiser les nœuds et arêtes avec les données générées
-  const { nodes: initialNodes, edges: initialEdges } = generateWijGraph(W, k, currentMatrix)
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
-
-  // Mettre à jour les nœuds et arêtes si W, k, ou currentMatrix change
-  useEffect(() => {
-    const { nodes: newNodes, edges: newEdges } = generateWijGraph(W, k, currentMatrix)
-    setNodes(newNodes)
-    setEdges(newEdges)
-  }, [W, k, currentMatrix, setNodes, setEdges, stepIndex, isAnimating])
 
   // Gestionnaire pour mettre à jour les positions des nœuds
   const handleNodesChange = (changes) => {
@@ -244,10 +251,11 @@ export default function WijGraph({ W, k, currentMatrix, stepIndex, nodePositions
           nodes={nodes}
           edges={edges}
           edgeTypes={edgeTypes}
+          nodeTypes={nodeTypes}
           onNodesChange={handleNodesChange}
           onEdgesChange={onEdgesChange}
           fitView
-          fitViewOptions={{ padding: 0.2 }}
+          fitViewOptions={{ padding: 0.1 }}
           nodesDraggable={true}
           elementsSelectable={true}
           className="w-full h-full"
@@ -275,6 +283,32 @@ export default function WijGraph({ W, k, currentMatrix, stepIndex, nodePositions
               style={{ background: "rgba(255, 255, 255, 0.8)", backdropFilter: "blur(4px)" }}
             >
               <span className="font-semibold">Étape k = {k}</span> • {nodes.length} sommets • {edges.length} arêtes
+            </div>
+          </Panel>
+
+          {/* Légende améliorée avec disposition */}
+          <Panel position="top-left">
+            <div
+              className="bg-white p-3 rounded-md shadow-sm border border-gray-200 text-xs"
+              style={{ background: "rgba(255, 255, 255, 0.9)", backdropFilter: "blur(4px)" }}
+            >
+              <div className="text-center mb-2 font-semibold text-gray-700">Disposition</div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">
+                  ↗
+                </div>
+                <span>Sources (gauche)</span>
+              </div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-3 h-3 bg-gradient-to-r from-orange-400 to-yellow-400 rounded-full"></div>
+                <span>Intermédiaire (centre)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-red-500 rounded-full flex items-center justify-center text-white text-xs">
+                  ↙
+                </div>
+                <span>Cibles (droite)</span>
+              </div>
             </div>
           </Panel>
         </ReactFlow>

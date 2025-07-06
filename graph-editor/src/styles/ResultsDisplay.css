@@ -333,6 +333,17 @@
   text-overflow: ellipsis;
 }
 
+/* Améliorer l'alignement global de la table */
+.result-matrix thead th {
+  position: relative;
+}
+
+.result-matrix thead th:not(.matrix-corner) {
+  /* Forcer l'alignement avec les colonnes du tbody */
+  border-left: 1px solid #d1d5db;
+  border-right: 1px solid #d1d5db;
+}
+
 .result-matrix tbody td {
   /* Assurer la correspondance exacte avec les en-têtes */
   border-left: 1px solid #e5e7eb;
@@ -357,10 +368,6 @@
   table-layout: fixed;
   /* Assurer que chaque colonne a exactement la même largeur */
   min-width: fit-content;
-}
-
-#result-matrix-header {
-  border: 4px solid red;
 }
 
 /* Améliorer la visibilité des bordures pour l'alignement */
@@ -481,6 +488,166 @@
 
 .optimal-path-graph {
   margin-bottom: 2rem;
+}
+
+/* NOUVEAUX STYLES POUR LA SIMULATION */
+.simulation-controls-section {
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 2px solid #0ea5e9;
+}
+
+.simulation-controls-section h4 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0c4a6e;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.simulation-path-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.path-simulation-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  transition: all 0.3s ease;
+}
+
+.path-simulation-item:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #0ea5e9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+}
+
+.path-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.path-name {
+  font-weight: 600;
+  color: #0c4a6e;
+  font-size: 0.95rem;
+}
+
+.path-route {
+  font-size: 0.85rem;
+  color: #0369a1;
+  font-family: "Courier New", monospace;
+}
+
+.path-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.simulate-path-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.simulate-path-btn:hover:not(.disabled) {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.simulate-path-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.stop-simulation-btn {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stop-simulation-btn:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.simulation-status {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid rgba(14, 165, 233, 0.3);
+}
+
+.status-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #0c4a6e;
+}
+
+.simulation-progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(14, 165, 233, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0369a1;
+  white-space: nowrap;
 }
 
 .graph-container {
@@ -745,5 +912,20 @@
     max-width: 60px;
     width: 60px;
     padding: 0.5rem;
+  }
+
+  .path-simulation-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .path-controls {
+    justify-content: center;
+  }
+
+  .simulation-progress {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 }

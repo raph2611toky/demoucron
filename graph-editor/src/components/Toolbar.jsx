@@ -1,8 +1,11 @@
 import React from 'react';
+import axios from 'axios';
 import { useGraphStore } from '../store/graphStore';
 import { Mail, Edit, Eye } from 'lucide-react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const Toolbar = () => {
+const Toolbar = ({ graphId }) => {
   const { 
     clearGraph, 
     nodes, 
@@ -21,10 +24,22 @@ const Toolbar = () => {
     toggleEditMode,
   } = useGraphStore();
 
-  const handleClearGraph = () => {
+  const handleClearGraph = async () => {
     if (!isEditMode) return;
     if (confirm('Êtes-vous sûr de vouloir effacer tout le graphe ?')) {
-      clearGraph();
+      try {
+        const response = await axios.delete(`http://localhost:8000/api/graphs/${graphId}/clear/`, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        clearGraph();
+        toast.success('Graphe vidé avec succès');
+      } catch (error) {
+        console.error('Erreur lors de la suppression du graphe:', error);
+        toast.error(error.response?.data?.error || 'Erreur réseau lors de la suppression');
+      }
     }
   };
 
@@ -52,7 +67,7 @@ const Toolbar = () => {
       if (path) {
         setCurrentPath(path);
       } else {
-        alert('Aucun chemin trouvé entre le sommet initial et final.');
+        toast.warn('Aucun chemin trouvé entre le sommet initial et final.');
         setCurrentPath([]);
       }
     }
@@ -60,7 +75,7 @@ const Toolbar = () => {
 
   const handleShowSimulationForm = () => {
     if (!canSimulate()) {
-      alert('Veuillez définir un sommet initial et un sommet final avant de configurer la simulation.');
+      toast.warn('Veuillez définir un sommet initial et un sommet final avant de configurer la simulation.');
       return;
     }
     setShowSimulationForm(true);
@@ -148,6 +163,8 @@ const Toolbar = () => {
         <span>Initial: {initialNode?.value || 'Non défini'}</span>
         <span>Final: {finalNode?.value || 'Non défini'}</span>
       </div>
+
+      <ToastContainer />
     </div>
   );
 };

@@ -401,3 +401,28 @@ class DeleteArcView(APIView):
             return Response({'error': 'Graphe introuvable'}, status=status.HTTP_404_NOT_FOUND)
         except Arc.DoesNotExist:
             return Response({'error': 'Arc introuvable'}, status=status.HTTP_404_NOT_FOUND)
+
+class GraphClearView(APIView):
+    @swagger_auto_schema(
+        operation_description="Supprime tous les sommets et arcs d'un graphe spécifié par son ID, tout en conservant le graphe lui-même.",
+        responses={
+            200: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'message': openapi.Schema(type=openapi.TYPE_STRING, description="Graphe vidé avec succès"),
+                }
+            ),
+            404: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={'error': openapi.Schema(type=openapi.TYPE_STRING)}
+            )
+        }
+    )
+    def delete(self, request, graph_id):
+        try:
+            graph = Graph.objects.get(pk=graph_id)
+            graph.arcs.all().delete()
+            graph.sommets.all().delete()
+            return Response({"message": "Graphe vidé avec succès"}, status=status.HTTP_200_OK)
+        except Graph.DoesNotExist:
+            return Response({'error': 'Graphe introuvable'}, status=status.HTTP_404_NOT_FOUND)

@@ -13,6 +13,7 @@ const NodeForm = () => {
     updateEdge,
     deleteEdge,
     setShowNodeForm,
+    saveNodeToBackend,
   } = useGraphStore();
 
   const [formData, setFormData] = useState({
@@ -20,6 +21,8 @@ const NodeForm = () => {
     isInitial: false,
     isFinal: false,
   });
+
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (selectedNode) {
@@ -31,10 +34,30 @@ const NodeForm = () => {
     }
   }, [selectedNode]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!isEditMode || !selectedNode) return;
-    updateNode(selectedNode.id, formData);
-    setShowNodeForm(false);
+    
+    setIsSaving(true);
+    try {
+      // Update node locally first
+      updateNode(selectedNode.id, formData);
+      
+      // Save to backend if it's a temporary node or has changes
+      if (selectedNode.isTemporary || 
+          formData.value !== selectedNode.value ||
+          formData.isInitial !== selectedNode.isInitial ||
+          formData.isFinal !== selectedNode.isFinal) {
+        
+        await saveNodeToBackend(selectedNode.id, formData);
+      }
+      
+      setShowNodeForm(false);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      alert('Erreur lors de la sauvegarde du sommet. Veuillez réessayer.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = () => {
@@ -105,6 +128,11 @@ const NodeForm = () => {
       <div className="form-header">
         <h3>
           {isEditMode ? '✨ Propriétés du sommet' : '👁️ Informations du sommet'}
+          {selectedNode.isTemporary && (
+            <span style={{ color: '#f59e0b', fontSize: '14px', marginLeft: '8px' }}>
+              (Non sauvegardé)
+            </span>
+          )}
         </h3>
         <button 
           className="close-button"
@@ -152,12 +180,31 @@ const NodeForm = () => {
 
         {isEditMode && (
           <div className="form-actions">
-            <button className="save-button" onClick={handleSave}>
-              💾 Sauvegarder
+            <button 
+              className="save-button" 
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? '⏳ Sauvegarde...' : '💾 Sauvegarder'}
             </button>
             <button className="delete-button" onClick={handleDelete}>
               🗑️ Supprimer
             </button>
+          </div>
+        )}
+
+        {selectedNode.isTemporary && (
+          <div style={{ 
+            padding: '12px', 
+            background: '#fef3c7', 
+            border: '1px solid #f59e0b', 
+            borderRadius: '8px', 
+            marginTop: '16px',
+            fontSize: '14px',
+            color: '#92400e'
+          }}>
+            ⚠️ Ce sommet n'est pas encore sauvegardé dans la base de données. 
+            Cliquez sur "Sauvegarder" pour le conserver.
           </div>
         )}
 
@@ -172,6 +219,9 @@ const NodeForm = () => {
                     <div className="edge-info">
                       <span className="edge-target">
                         → {targetNode ? targetNode.value || 'Sans nom' : 'Inconnu'}
+                        {edge.isTemporary && (
+                          <span style={{ color: '#f59e0b', fontSize: '12px' }}> (temp)</span>
+                        )}
                       </span>
                       <input
                         type="number"

@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Stage, Layer, Circle, Text, Line, Rect, Group, Path } from 'react-konva';
 import { useGraphStore } from '../store/graphStore';
 
-const GraphCanvas = () => {
+const GraphCanvas = ({ isReadOnly = false, pathColors = { nodes: {}, edges: {} } }) => {
   const stageRef = useRef(null);
   const containerRef = useRef(null);
   const [stageSize, setStageSize] = useState({ width: 800, height: 600 });
@@ -40,6 +40,8 @@ const GraphCanvas = () => {
     clearGraph,
     openEdgeWeightModal,
   } = useGraphStore();
+
+  const effectiveEditMode = isReadOnly ? false : isEditMode;
 
   useEffect(() => {
     const handleResize = () => {
@@ -85,7 +87,7 @@ const GraphCanvas = () => {
       setLastPointerPosition(pos);
     }
 
-    if (arcCreationMode && isEditMode) {
+    if (arcCreationMode && effectiveEditMode) {
       const sourceNode = nodes.find((n) => n.id === arcCreationMode);
       if (sourceNode) {
         setPreviewArc({
@@ -109,6 +111,7 @@ const GraphCanvas = () => {
   };
 
   const handleStageClick = (e) => {
+    if (isReadOnly) return;
     if (e.target === e.target.getStage()) {
       if (arcCreationMode) {
         setArcCreationMode(null);
@@ -122,9 +125,8 @@ const GraphCanvas = () => {
   };
 
   const handleStageRightClick = (e) => {
+    if (isReadOnly) return;
     e.evt.preventDefault();
-    if (!isEditMode || isSimulating) return;
-    
     const pos = e.target.getStage().getPointerPosition();
     const stagePos = e.target.getStage().position();
     const adjustedPos = {
@@ -135,23 +137,28 @@ const GraphCanvas = () => {
   };
 
   const handleNodeLeftClick = (node) => {
-    if (!isEditMode) return;
-    
-    if (arcCreationMode === null) {
-      setArcCreationMode(node.id);
-    } else if (arcCreationMode === node.id) {
-      setArcCreationMode(null);
-      setPreviewArc(null);
-    } else {
-      addEdge(arcCreationMode, node.id);
-      setArcCreationMode(null);
-      setPreviewArc(null);
+    if (isReadOnly) return;
+    if (effectiveEditMode) {
+      if (arcCreationMode === null) {
+        setArcCreationMode(node.id);
+      } else if (arcCreationMode === node.id) {
+        setArcCreationMode(null);
+        setPreviewArc(null);
+      } else {
+        addEdge(arcCreationMode, node.id);
+        setArcCreationMode(null);
+        setPreviewArc(null);
+      }
     }
   };
 
   const handleNodeRightClick = (e, node) => {
     e.evt.preventDefault();
-    // Toujours afficher le formulaire de nœud, même en mode lecture
+    if (isReadOnly) {
+      setSelectedNode(node);
+      setShowNodeForm(true);
+      return;
+    }
     setSelectedNode(node);
     setShowNodeForm(true);
     setContextMenu(false);
@@ -162,12 +169,12 @@ const GraphCanvas = () => {
   };
 
   const handleNodeDragStart = () => {
-    if (!isEditMode) return;
+    if (isReadOnly) return;
     setIsDraggingNode(true);
   };
 
   const handleNodeDragEnd = (nodeId, e) => {
-    if (!isEditMode) return;
+    if (isReadOnly) return;
     setIsDraggingNode(false);
     const newPos = e.target.position();
     updateNode(nodeId, { x: newPos.x, y: newPos.y });
@@ -194,10 +201,9 @@ const GraphCanvas = () => {
   };
 
   const handleEdgeRightClick = (e, edge) => {
+    if (isReadOnly) return;
     e.evt.preventDefault();
     e.cancelBubble = true;
-    if (!isEditMode || isSimulating) return;
-    
     openEdgeWeightModal(edge);
   };
 
@@ -207,25 +213,41 @@ const GraphCanvas = () => {
   };
 
   const getNodeColor = (node) => {
-    if (node.isInitial) return 'linear-gradient(135deg, #10b981, #059669)';
-    if (node.isFinal) return 'linear-gradient(135deg, #ef4444, #dc2626)';
-    if (arcCreationMode === node.id) return 'linear-gradient(135deg, #fbbf24, #f59e0b)';
-    return 'linear-gradient(135deg, #ffffff, #f8fafc)';
+    if (pathColors.nodes[node.id]) return pathColors.nodes[node.id];
+    if (node.isInitial) return '#10b981';
+    if (node.isFinal) return '#ef4444';
+    if (arcCreationMode === node.id) return '#fbbf24';
+    if (node.isTemporary) return '#f59e0b';
+    return '#ffffff';
   };
 
   const getNodeBorderColor = (node) => {
+    if (pathColors.nodes[node.id]) return darkenColor(pathColors.nodes[node.id]);
     if (node.isInitial) return '#059669';
     if (node.isFinal) return '#dc2626';
     if (arcCreationMode === node.id) return '#f59e0b';
+    if (node.isTemporary) return '#d97706';
     return '#d1d5db';
+  };
+
+  const darkenColor = (color) => {
+    const map = {
+      '#f97316': '#c2410c',
+      '#10b981': '#047857',
+      '#8b5cf6': '#6d28d9',
+      '#ef4444': '#b91c1c',
+      '#3b82f6': '#1d4ed8',
+      '#eab308': '#b45309',
+      '#14b8a6': '#0f766e',
+      '#ec4899': '#be185d'
+    };
+    return map[color] || color;
   };
 
   const renderPacket = () => {
     if (!packetPosition || !isSimulating) return null;
-
     return (
       <Group x={packetPosition.x} y={packetPosition.y}>
-        {/* Enveloppe principale */}
         <Rect
           x={-10}
           y={-7.5}
@@ -240,16 +262,12 @@ const GraphCanvas = () => {
           shadowOffset={{ x: 1, y: 1 }}
           shadowOpacity={0.5}
         />
-        
-        {/* Rabat de l'enveloppe */}
         <Path
           data="M -10 -7.5 L 0 0 L 10 -7.5 Z"
           fill="#f59e0b"
           stroke="#d97706"
           strokeWidth={0.5}
         />
-        
-        {/* Icône de courrier */}
         <Text
           text="📧"
           fontSize={8}
@@ -260,8 +278,6 @@ const GraphCanvas = () => {
           offsetX={10}
           offsetY={7.5}
         />
-        
-        {/* Animation de pulsation */}
         <Circle
           radius={12}
           fill="rgba(251, 191, 36, 0.2)"
@@ -280,25 +296,16 @@ const GraphCanvas = () => {
         key={node.id}
         x={node.x}
         y={node.y}
-        draggable={isEditMode && !isSimulating}
+        draggable={effectiveEditMode && !isSimulating}
         onDragStart={handleNodeDragStart}
         onDragEnd={(e) => handleNodeDragEnd(node.id, e)}
         onClick={() => handleNodeLeftClick(node)}
         onContextMenu={(e) => handleNodeRightClick(e, node)}
       >
-        {selectedNode?.id === node.id && (
-          <Circle
-            radius={35}
-            fill="rgba(59, 130, 246, 0.2)"
-            stroke="#3b82f6"
-            strokeWidth={1}
-            dash={[5, 5]}
-          />
-        )}
         <Circle
           radius={28}
-          fill={node.isInitial ? '#10b981' : node.isFinal ? '#ef4444' : arcCreationMode === node.id ? '#fbbf24' : '#ffffff'}
-          stroke={getNodeBorderColor(node)}
+          fill={pathColors.nodes[node.id] || getNodeColor(node)}
+          stroke={pathColors.nodes[node.id] ? darkenColor(pathColors.nodes[node.id]) : getNodeBorderColor(node)}
           strokeWidth={3}
           shadowColor="rgba(0, 0, 0, 0.3)"
           shadowBlur={8}
@@ -330,7 +337,7 @@ const GraphCanvas = () => {
 
   const renderEdges = () => {
     const edgesToRender = [...edges];
-    if (previewArc && isEditMode) {
+    if (previewArc && effectiveEditMode) {
       edgesToRender.push({
         id: 'preview',
         fromNode: previewArc.from,
@@ -369,37 +376,42 @@ const GraphCanvas = () => {
       const arrowY1 = endY - arrowLength * Math.sin(angle - arrowAngle);
       const arrowX2 = endX - arrowLength * Math.cos(angle + arrowAngle);
       const arrowY2 = endY - arrowLength * Math.sin(angle + arrowAngle);
-      const strokeColor = currentPath.includes(edge.id) ? 'red' : edge.isPreview ? '#3b82f6' : '#374151';
+
+      let strokeColor = '#374151';
+      if (pathColors.edges[edge.id]) strokeColor = pathColors.edges[edge.id];
+      else if (edge.isPreview) strokeColor = '#3b82f6';
+      else if (edge.isTemporary) strokeColor = '#f59e0b';
+
       return (
         <Group key={edge.id}>
           <Path
             data={pathData}
             stroke={strokeColor}
             strokeWidth={edge.isPreview ? 3 : 2}
-            opacity={edge.isPreview ? 0.7 : 1}
-            dash={edge.isPreview ? [10, 5] : []}
-            onContextMenu={!edge.isPreview ? (e) => handleEdgeRightClick(e, edge) : undefined}
+            opacity={edge.isPreview ? 0.7 : edge.isTemporary ? 0.8 : 1}
+            dash={edge.isPreview ? [10, 5] : edge.isTemporary ? [5, 5] : []}
+            onContextMenu={!edge.isPreview && effectiveEditMode ? (e) => handleEdgeRightClick(e, edge) : undefined}
           />
           <Line
             points={[endX, endY, arrowX1, arrowY1]}
             stroke={strokeColor}
             strokeWidth={edge.isPreview ? 3 : 2}
-            opacity={edge.isPreview ? 0.7 : 1}
+            opacity={edge.isPreview ? 0.7 : edge.isTemporary ? 0.8 : 1}
           />
           <Line
             points={[endX, endY, arrowX2, arrowY2]}
             stroke={strokeColor}
             strokeWidth={edge.isPreview ? 3 : 2}
-            opacity={edge.isPreview ? 0.7 : 1}
+            opacity={edge.isPreview ? 0.7 : edge.isTemporary ? 0.8 : 1}
           />
-          <Group x={midX} y={midY} onContextMenu={!edge.isPreview ? (e) => handleEdgeRightClick(e, edge) : undefined}>
+          <Group x={midX} y={midY} onContextMenu={!edge.isPreview && effectiveEditMode ? (e) => handleEdgeRightClick(e, edge) : undefined}>
             <Rect
               x={-16}
               y={-12}
               width={32}
               height={24}
-              fill={edge.isPreview ? 'rgba(59, 130, 246, 0.9)' : '#ffffff'}
-              stroke={edge.isPreview ? '#3b82f6' : '#374151'}
+              fill={edge.isPreview ? 'rgba(59, 130, 246, 0.9)' : edge.isTemporary ? 'rgba(245, 158, 11, 0.9)' : '#ffffff'}
+              stroke={edge.isPreview ? '#3b82f6' : edge.isTemporary ? '#f59e0b' : '#374151'}
               strokeWidth={2}
               cornerRadius={6}
               shadowColor="rgba(0, 0, 0, 0.2)"
@@ -411,7 +423,7 @@ const GraphCanvas = () => {
               text={edge.weight?.toString() || '0'}
               fontSize={12}
               fontFamily="Inter, Arial"
-              fill={edge.isPreview ? '#ffffff' : '#374151'}
+              fill={edge.isPreview || edge.isTemporary ? '#ffffff' : '#374151'}
               fontStyle="600"
               width={32}
               height={24}
@@ -464,7 +476,7 @@ const GraphCanvas = () => {
           {renderPacket()}
         </Layer>
       </Stage>
-      {contextMenu.visible && isEditMode && !isSimulating && (
+      {contextMenu.visible && effectiveEditMode && !isSimulating && (
         <div
           className="context-menu"
           style={{
@@ -490,7 +502,7 @@ const GraphCanvas = () => {
           </button>
         </div>
       )}
-      {arcCreationMode && isEditMode && !isSimulating && (
+      {arcCreationMode && effectiveEditMode && !isSimulating && (
         <div className="arc-creation-indicator">
           <div className="indicator-content">
             <div className="indicator-icon">🎯</div>
@@ -512,7 +524,7 @@ const GraphCanvas = () => {
           </div>
         </div>
       )}
-      {!isEditMode && (
+      {isReadOnly && (
         <div className="read-mode-indicator">
           <div className="indicator-content">
             <div className="indicator-icon">👁️</div>

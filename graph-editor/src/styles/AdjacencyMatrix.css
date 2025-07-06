@@ -1,0 +1,246 @@
+.adjacency-matrix-container {
+  padding: 24px;
+  background: white;
+  margin: 0 20px 20px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 2px solid #e5e7eb;
+}
+
+.matrix-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+}
+
+.matrix-header h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.matrix-info {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.matrix-wrapper {
+  overflow-x: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 2px solid #e5e7eb;
+  margin-bottom: 24px;
+}
+
+.adjacency-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 14px;
+}
+
+.matrix-corner {
+  background: linear-gradient(135deg, #374151, #1f2937);
+  color: white;
+  font-weight: 700;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid #4b5563;
+}
+
+.matrix-header-cell {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+  color: white;
+  font-weight: 700;
+  padding: 16px 12px;
+  text-align: center;
+  border: 1px solid #4b5563;
+  min-width: 60px;
+  font-size: 13px;
+}
+
+.matrix-cell {
+  padding: 16px 12px;
+  text-align: center;
+  border: 1px solid #e5e7eb;
+  background: white;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  min-width: 60px;
+}
+
+.matrix-cell:hover {
+  background: #f3f4f6;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.matrix-cell.diagonal {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
+  font-weight: 700;
+}
+
+.matrix-cell.has-value {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #1e40af;
+  font-weight: 700;
+}
+
+.matrix-cell.has-value:hover {
+  background: linear-gradient(135deg, #bfdbfe, #93c5fd);
+}
+
+.node-types-legend {
+  padding: 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+}
+
+.node-types-legend h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.legend-item.initial .legend-color {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.legend-item.normal .legend-color {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+}
+
+.legend-item.final .legend-color {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.empty-matrix {
+  padding: 40px;
+  text-align: center;
+  color: #6b7280;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 2px dashed #e5e7eb;
+}
+
+.empty-matrix p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* From additional CSS */
+.matrix-container {
+  overflow-x: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.matrix-header {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  padding: 1rem;
+  font-weight: 700;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .adjacency-matrix-container {
+    padding: 16px;
+    margin: 0 10px 10px 10px;
+  }
+  
+  .matrix-header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  
+  .matrix-header h2 {
+    font-size: 18px;
+  }
+  
+  .adjacency-matrix {
+    font-size: 12px;
+  }
+  
+  .matrix-header-cell,
+  .matrix-cell {
+    padding: 12px 8px;
+    min-width: 50px;
+  }
+  
+  .legend-items {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .matrix-container {
+    font-size: 0.8rem;
+  }
+  
+  .matrix-header,
+  .matrix-cell {
+    padding: 0.5rem;
+  }
+}
+
+.matrix-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.matrix-wrapper::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.matrix-wrapper::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-radius: 4px;
+}
+
+.matrix-wrapper::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}

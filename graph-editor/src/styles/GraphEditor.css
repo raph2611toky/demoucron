@@ -1,0 +1,157 @@
+.graph-editor {
+  background: white;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+}
+
+.editor-header {
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 2px solid #e5e7eb;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.editor-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.editor-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.editor-content {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 120px);
+  /* Ajout de marges gauche et droite */
+  margin: 0 20px;
+}
+
+.canvas-area {
+  position: relative;
+  flex: 1;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  /* Ajout de marges internes */
+  margin: 20px 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 2px solid #e5e7eb;
+}
+
+/* Make sure toolbar is positioned correctly */
+.graph-editor .toolbar {
+  position: relative;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  border-bottom: 2px solid #e5e7eb;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  z-index: 50;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+  border-radius: 12px 12px 0 0;
+}
+
+/* Canvas container within the editor */
+.graph-editor .canvas-container {
+  flex: 1;
+  background: linear-gradient(135deg, #ffffff 0%, #f9f7f7 100%);
+  background-image: 
+    radial-gradient(circle at 25px 25px, rgba(59, 130, 246, 0.05) 2px, transparent 2px),
+    radial-gradient(circle at 75px 75px, rgba(168, 85, 247, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px, 25px 25px;
+  position: relative;
+  min-height: 500px;
+  width: 100%;
+  border-radius: 0 0 12px 12px;
+}
+
+/* Form overlays positioning */
+.node-form, .simulation-form {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  max-width: 90vw;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  z-index: 1500;
+  border: 2px solid #e5e7eb;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .editor-header {
+    padding: 16px;
+  }
+
+  .editor-header h2 {
+    font-size: 20px;
+  }
+
+  .editor-content {
+    min-height: calc(100vh - 100px);
+    margin: 0 10px;
+  }
+
+  .canvas-area {
+    min-height: 400px;
+    margin: 10px 0;
+  }
+
+  .node-form, .simulation-form {
+    width: 95vw;
+    max-width: 95vw;
+    margin: 20px;
+    max-height: 85vh;
+  }
+}
+
+/* Ensure forms have proper scrolling */
+.node-form::-webkit-scrollbar,
+.simulation-form::-webkit-scrollbar {
+  width: 6px;
+}
+
+.node-form::-webkit-scrollbar-track,
+.simulation-form::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.node-form::-webkit-scrollbar-thumb,
+.simulation-form::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-radius: 3px;
+}
+
+.node-form::-webkit-scrollbar-thumb:hover,
+.simulation-form::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}

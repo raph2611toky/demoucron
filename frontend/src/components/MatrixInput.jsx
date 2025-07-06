@@ -68,10 +68,9 @@ function MatrixInput({ onMatrixUpdate, theme }) {
           <div className="size-selector">
             <input
               type="number"
+              min="0"
               value={nbrMatrice}
               onChange={handleChange}
-              min="0"
-              max="10"
               className="form-input size-input"
             />
             <div className="size-info">
@@ -110,8 +109,12 @@ function MatrixInput({ onMatrixUpdate, theme }) {
                       <td key={j} className="matrix-cell">
                         <input
                           type="number"
+                          min="0"
                           value={cell === null ? "" : cell}
-                          onChange={(e) => handleMatrixChange(i, j, e.target.value)}
+                          onChange={(e) => {
+                            const value = Math.abs(Number(e.target.value));
+                            handleMatrixChange(i, j, value);
+                          }}
                           className="matrix-input-field"
                           placeholder={i === j ? "0" : "∞"}
                           disabled={i === j}

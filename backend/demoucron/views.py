@@ -99,6 +99,30 @@ class GraphDetailView(APIView):
             return Response(response_data)
         except Graph.DoesNotExist:
             return Response({'error': 'Graphe introuvable'}, status=status.HTTP_404_NOT_FOUND)
+        
+class GraphDeleteView(APIView):
+    @swagger_auto_schema(
+        operation_description="Supprimer un graphe spécifique par son ID",
+        responses={
+            200: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'message': openapi.Schema(type=openapi.TYPE_INTEGER, description="Graphe supprimé avec succès"),
+                }
+            ),
+            404: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={'error': openapi.Schema(type=openapi.TYPE_STRING)}
+            )
+        }
+    )
+    def delete(self, request, graph_id):
+        try:
+            graph = Graph.objects.get(pk=graph_id)
+            graph.delete()
+            return Response({"message":"Graph supprimé avec succès"},status=status.HTTP_204_NO_CONTENT)
+        except Graph.DoesNotExist:
+            return Response({'error': 'Graphe introuvable'}, status=status.HTTP_404_NOT_FOUND)
 
 class AddSommetView(APIView):
     @swagger_auto_schema(
@@ -113,6 +137,8 @@ class AddSommetView(APIView):
                     enum=['normal', 'initial', 'final'],
                     description="Type du sommet"
                 ),
+                'x': openapi.Schema(type=openapi.TYPE_NUMBER),
+                'y': openapi.Schema(type=openapi.TYPE_NUMBER),
             },
         ),
         responses={
@@ -147,7 +173,7 @@ class AddArcView(APIView):
             properties={
                 'source': openapi.Schema(type=openapi.TYPE_STRING, description="Nom du sommet source"),
                 'target': openapi.Schema(type=openapi.TYPE_STRING, description="Nom du sommet cible"),
-                'weight': openapi.Schema(type=openapi.TYPE_NUMBER, description="Poids de l'arc"),
+                'weight': openapi.Schema(type=openapi.TYPE_NUMBER, description="Poids de l'arc")
             },
         ),
         responses={

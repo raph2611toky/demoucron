@@ -1,4 +1,5 @@
 export async function MinDemoucron(formData) {
+  console.log(formData);
   const { methode, matrice, nbrMatrice } = formData;
 
   if (!methode || methode !== "min" || nbrMatrice <= 0 || !matrice || matrice.length !== nbrMatrice || matrice.some(row => row.length !== nbrMatrice)) {
@@ -14,15 +15,16 @@ export async function MinDemoucron(formData) {
   const currentMatrix = matrice.map(row => [...row]);
   const steps = [];
 
+  // Initialiser les prédécesseurs comme des listes pour stocker plusieurs prédécesseurs possibles
   const predecessors = Array.from({ length: nbrMatrice }, () =>
-    Array(nbrMatrice).fill(-1)
+    Array.from({ length: nbrMatrice }, () => [])
   );
 
-  // Initialiser les prédécesseurs pour les arêtes directes
+  // Définir les prédécesseurs initiaux pour les arêtes directes
   for (let i = 0; i < nbrMatrice; i++) {
     for (let j = 0; j < nbrMatrice; j++) {
       if (i !== j && currentMatrix[i][j] !== null && currentMatrix[i][j] !== Infinity) {
-        predecessors[i][j] = i;
+        predecessors[i][j].push(i);
       }
     }
   }
@@ -35,7 +37,6 @@ export async function MinDemoucron(formData) {
     description: "Matrice initiale"
   });
 
-  // Demoucron : on ne prend pas k = 0 ni k = n - 1
   for (let k = 1; k < nbrMatrice - 1; k++) {
     const W = [];
     const V = [];
@@ -46,7 +47,6 @@ export async function MinDemoucron(formData) {
 
         const direct = currentMatrix[i][j];
         const viaK = currentMatrix[i][k] + currentMatrix[k][j];
-        const newValue = Math.min(direct, viaK);
 
         W.push({
           i: i + 1,
@@ -55,16 +55,18 @@ export async function MinDemoucron(formData) {
           formula: `W_${i + 1}${j + 1}^(${k}) = V_${i + 1}${k + 1}^(${k}) + V_${k + 1}${j + 1}^(${k}) = ${currentMatrix[i][k]} + ${currentMatrix[k][j]} = ${viaK}`
         });
 
-        if (newValue < direct) {
-          currentMatrix[i][j] = newValue;
-          predecessors[i][j] = predecessors[k][j];
+        if (viaK < direct) {
+          currentMatrix[i][j] = viaK;
+          predecessors[i][j] = [...predecessors[k][j]];
+        } else if (viaK === direct) {
+          predecessors[i][j] = [...new Set([...predecessors[i][j], ...predecessors[k][j]])];
         }
 
         V.push({
           i: i + 1,
           j: j + 1,
-          value: newValue,
-          formula: `V_${i + 1}${j + 1}^(${k + 1}) = MIN(W_${i + 1}${j + 1}^(${k}), V_${i + 1}${j + 1}^(${k})) = MIN(${viaK}, ${direct}) = ${newValue}`
+          value: currentMatrix[i][j],
+          formula: `V_${i + 1}${j + 1}^(${k + 1}) = MIN(W_${i + 1}${j + 1}^(${k}), V_${i + 1}${j + 1}^(${k})) = MIN(${viaK}, ${direct}) = ${currentMatrix[i][j]}`
         });
       }
     }
@@ -77,34 +79,43 @@ export async function MinDemoucron(formData) {
     });
   }
 
-  // Reconstruction des chemins uniquement depuis le sommet initial (nœud 0)
-  const getPath = (start, end) => {
-    if (currentMatrix[start][end] === Infinity || predecessors[start][end] === -1) return [];
-    const path = [];
-    let current = end;
+  // Fonction corrigée pour reconstruire les chemins optimaux dans l'ordre correct
+  const getAllPaths = (start, current, path = [], visited = new Set()) => {
+    path = [...path, current]; // Ajouter le nœud actuel à la fin du chemin
 
-    while (current !== start) {
-      if (path.includes(current + 1)) return []; // éviter les boucles
-      path.unshift(current + 1);
-      current = predecessors[start][current];
-      if (current === -1) return [];
+    if (current === start) {
+      return [path.reverse().map(node => node + 1)]; // Inverser le chemin et ajuster les indices à base 1
     }
 
-    path.unshift(start + 1);
-    return path;
+    if (visited.has(current)) {
+      return []; // Éviter les boucles
+    }
+
+    visited.add(current);
+
+    const paths = [];
+    const preds = predecessors[start][current];
+
+    for (const pred of preds) {
+      const subPaths = getAllPaths(start, pred, path, new Set(visited));
+      paths.push(...subPaths);
+    }
+
+    return paths;
   };
 
   const optimalPaths = {};
-  const start = 0;
+  let start = 0;
   for (let end = 0; end < nbrMatrice; end++) {
     if (start !== end && currentMatrix[start][end] !== Infinity) {
-      const path = getPath(start, end);
-      if (path.length > 1 && end === nbrMatrice-1) {
-        optimalPaths[`${start + 1}-${end + 1}`] = path;
+      const paths = getAllPaths(start, end);
+      if (paths.length > 0 && end === nbrMatrice - 1) {
+        optimalPaths[`${start + 1}-${end + 1}`] = paths;
       }
     }
   }
 
+  console.log("Generated optimalPaths:", optimalPaths);
 
   return {
     steps,

@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 
+# Models
 class Graph(models.Model):
     name = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -19,6 +20,8 @@ class Sommet(models.Model):
         ('initial', 'Initial'),
         ('final', 'Final')
     ])
+    x = models.FloatField(default=0.0)  # Position x
+    y = models.FloatField(default=0.0)  # Position y
 
     def clean(self):
         if self.type == 'initial':
@@ -43,7 +46,7 @@ class Arc(models.Model):
     graph = models.ForeignKey(Graph, on_delete=models.CASCADE, related_name='arcs')
     source = models.ForeignKey(Sommet, on_delete=models.CASCADE, related_name='arcs_sortant')
     target = models.ForeignKey(Sommet, on_delete=models.CASCADE, related_name='arcs_entrant')
-    weight = models.FloatField()
+    weight = models.FloatField(default=1.0)
 
     def clean(self):
         if self.target.type == 'initial':

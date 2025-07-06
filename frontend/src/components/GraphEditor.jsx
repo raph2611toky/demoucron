@@ -22,8 +22,9 @@ function GraphEditor({ onUpdate, theme }) {
     try {
       const response = await axios.get("http://localhost:8000/api/graphs/");
       setGraphs(response.data);
+      setNotification({ show: true, message: "Liste des graphes chargée avec succès", type: "success" });
     } catch (error) {
-      setNotification({ show: true, message: `Erreur de connexion: ${error.message}`, type: "error" });
+      setNotification({ show: true, message: `Erreur de chargement: ${error.message}`, type: "error" });
     } finally {
       setLoading(false);
     }
@@ -53,12 +54,36 @@ function GraphEditor({ onUpdate, theme }) {
         graphId: data.id
       });
     } catch (error) {
-      setNotification({ show: true, message: `Erreur de connexion: ${error.message}`, type: "error" });
+      setNotification({ show: true, message: `Erreur de chargement: ${error.message}`, type: "error" });
       onUpdate({ error: "Erreur lors du chargement du graphe" });
     } finally {
       setLoading(false);
     }
   }, [onUpdate]);
+
+  const deleteGraph = async (graphIdToDelete) => {
+    if (!graphIdToDelete) {
+      setNotification({ show: true, message: "Aucun graphe sélectionné pour suppression", type: "error" });
+      return;
+    }
+    setLoading(true);
+    try {
+      await axios.delete(`http://localhost:8000/api/graphs/${graphIdToDelete}/supprimer/`);
+      setGraphs((prevGraphs) => prevGraphs.filter((g) => g.id !== graphIdToDelete));
+      if (selectedGraph === String(graphIdToDelete)) {
+        setSelectedGraph("");
+        setGraphId(null);
+        setNodes([]);
+        setEdges([]);
+        onUpdate({ nodes: [], edges: [], node_names: [], initial_matrix: [], graphId: null });
+      }
+      setNotification({ show: true, message: "Graphe supprimé avec succès", type: "success" });
+    } catch (error) {
+      setNotification({ show: true, message: `Erreur de suppression: ${error.message}`, type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     loadGraphs();
@@ -82,7 +107,7 @@ function GraphEditor({ onUpdate, theme }) {
       setGraphName("");
       setNotification({ show: true, message: `Graphe '${newGraph.name}' créé avec succès`, type: "success" });
     } catch (error) {
-      setNotification({ show: true, message: `Erreur de connexion: ${error.message}`, type: "error" });
+      setNotification({ show: true, message: `Erreur de création: ${error.message}`, type: "error" });
     } finally {
       setLoading(false);
     }
@@ -109,7 +134,7 @@ function GraphEditor({ onUpdate, theme }) {
       setNodeType("normal");
       setNotification({ show: true, message: `Sommet '${nodeName}' ajouté avec succès`, type: "success" });
     } catch (error) {
-      setNotification({ show: true, message: `Erreur de connexion: ${error.message}`, type: "error" });
+      setNotification({ show: true, message: `Erreur d'ajout: ${error.message}`, type: "error" });
     } finally {
       setLoading(false);
     }
@@ -141,7 +166,7 @@ function GraphEditor({ onUpdate, theme }) {
       setWeight("");
       setNotification({ show: true, message: `Arc de '${source}' à '${target}' ajouté avec succès`, type: "success" });
     } catch (error) {
-      setNotification({ show: true, message: `Erreur de connexion: ${error.message}`, type: "error" });
+      setNotification({ show: true, message: `Erreur d'ajout: ${error.message}`, type: "error" });
     } finally {
       setLoading(false);
     }
@@ -158,7 +183,7 @@ function GraphEditor({ onUpdate, theme }) {
       await loadGraphDetails(graphId);
       setNotification({ show: true, message: `Sommet '${sommetName}' supprimé avec succès`, type: "success" });
     } catch (error) {
-      setNotification({ show: true, message: `Erreur de connexion: ${error.message}`, type: "error" });
+      setNotification({ show: true, message: `Erreur de suppression: ${error.message}`, type: "error" });
     } finally {
       setLoading(false);
     }
@@ -175,7 +200,7 @@ function GraphEditor({ onUpdate, theme }) {
       await loadGraphDetails(graphId);
       setNotification({ show: true, message: `Arc de '${sourceName}' à '${targetName}' supprimé avec succès`, type: "success" });
     } catch (error) {
-      setNotification({ show: true, message: `Erreur de connexion: ${error.message}`, type: "error" });
+      setNotification({ show: true, message: `Erreur de suppression: ${error.message}`, type: "error" });
     } finally {
       setLoading(false);
     }
@@ -194,6 +219,7 @@ function GraphEditor({ onUpdate, theme }) {
         return <svg className="node-type-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2m4 7h6" /></svg>;
       case "final":
         return <svg className="node-type-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+//  -4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
       default:
         return <svg className="node-type-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>;
     }
@@ -258,17 +284,21 @@ function GraphEditor({ onUpdate, theme }) {
               <label>Sélectionner un graphe</label>
               <select value={selectedGraph} onChange={(e) => setSelectedGraph(e.target.value)} className="form-select">
                 <option value="">Choisir un graphe existant</option>
-                {graphs.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+                {graphs.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="form-group">
               <label>Nouveau graphe</label>
               <div className="input-group">
-                <input 
-                  type="text" 
-                  value={graphName} 
-                  onChange={(e) => setGraphName(e.target.value)} 
-                  placeholder="Nom du graphe" 
+                <input
+                  type="text"
+                  value={graphName}
+                  onChange={(e) => setGraphName(e.target.value)}
+                  placeholder="Nom du graphe"
                   className="form-input"
                 />
                 <button onClick={createGraph} disabled={loading} className="btn btn-primary">
@@ -278,6 +308,27 @@ function GraphEditor({ onUpdate, theme }) {
                 </button>
               </div>
             </div>
+          </div>
+          <div className="graph-list">
+            <h4>Liste des graphes</h4>
+            {graphs.length > 0 ? (
+              <ul>
+                {graphs.map((g) => (
+                  <li key={g.id}>
+                    {g.name}
+                    <button
+                      onClick={() => deleteGraph(g.id)}
+                      disabled={loading}
+                      className="btn btn-danger btn-sm"
+                    >
+                      Supprimer
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>Aucun graphe disponible</p>
+            )}
           </div>
         </motion.div>
 
@@ -293,11 +344,11 @@ function GraphEditor({ onUpdate, theme }) {
           <div className="form-grid">
             <div className="form-group">
               <label>Nom du sommet</label>
-              <input 
-                type="text" 
-                value={nodeName} 
-                onChange={(e) => setNodeName(e.target.value)} 
-                placeholder="Ex: A, B, C..." 
+              <input
+                type="text"
+                value={nodeName}
+                onChange={(e) => setNodeName(e.target.value)}
+                placeholder="Ex: A, B, C..."
                 className="form-input"
               />
             </div>
@@ -334,23 +385,35 @@ function GraphEditor({ onUpdate, theme }) {
               <label>Source</label>
               <select value={source} onChange={(e) => setSource(e.target.value)} className="form-select">
                 <option value="">Choisir</option>
-                {nodes.map((n) => <option key={n.id} value={n.name}>{n.name}</option>)}
+                {nodes.map((n) => (
+                  <option key={n.id} value={n.name}>
+                    {n.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="form-group">
               <label>Cible</label>
               <select value={target} onChange={(e) => setTarget(e.target.value)} className="form-select">
                 <option value="">Choisir</option>
-                {nodes.map((n) => <option key={n.id} value={n.name}>{n.name}</option>)}
+                {nodes.map((n) => (
+                  <option key={n.id} value={n.name}>
+                    {n.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="form-group">
               <label>Poids</label>
-              <input 
-                type="number" 
-                value={weight} 
-                onChange={(e) => setWeight(e.target.value)} 
-                placeholder="0" 
+              <input
+                type="number"
+                min="0"
+                value={weight}
+                onChange={(e) => {
+                  const value = Math.abs(Number(e.target.value));
+                  setWeight(value);
+                }}
+                placeholder="0"
                 className="form-input"
               />
             </div>

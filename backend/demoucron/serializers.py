@@ -4,7 +4,7 @@ from .models import Graph, Sommet, Arc
 class SommetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sommet
-        fields = ['id', 'name', 'type']
+        fields = ['id', 'name', 'type', 'x', 'y']
 
 class ArcSerializer(serializers.ModelSerializer):
     source = serializers.SlugRelatedField(slug_field='name', queryset=Sommet.objects.all())

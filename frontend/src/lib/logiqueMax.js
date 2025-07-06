@@ -1,147 +1,133 @@
 // src/lib/logiqueMax.js
 
 export async function MaxDemoucron(formData) {
-  const { methode, matrice, nbrMatrice } = formData
+  const { methode, matrice, nbrMatrice } = formData;
 
-  if (!methode) {
-    return { 
-      steps: [], 
-      finalMatrix: [], 
-      predecessors: [], 
-      optimalPaths: {}, 
-      error: "Veuillez sélectionner une méthode (min ou max)." 
-    }
-  }
-  
-  if (nbrMatrice <= 0 || !matrice || matrice.length !== nbrMatrice || matrice[0].length !== nbrMatrice) {
-    return { 
-      steps: [], 
-      finalMatrix: [], 
-      predecessors: [], 
-      optimalPaths: {}, 
-      error: "Matrice invalide ou nombre de matrices incorrect." 
-    }
+  if (!methode || methode !== "max" || nbrMatrice <= 0 || !matrice || matrice.length !== nbrMatrice || matrice.some(row => row.length !== nbrMatrice)) {
+    return {
+      steps: [],
+      finalMatrix: [],
+      predecessors: [],
+      optimalPaths: {},
+      error: "Données d'entrée invalides."
+    };
   }
 
-  const currentMatrix = matrice.map(row => [...row])
-  const steps = []
-  const predecessors = Array.from({ length: nbrMatrice }, (_, i) =>
-    Array.from({ length: nbrMatrice }, (_, j) => (currentMatrix[i][j] !== Infinity && i !== j ? i : -1))
-  )
+  const currentMatrix = matrice.map(row => [...row]);
+  const steps = [];
 
-  for (let k = 2; k <= nbrMatrice - 1; k++) {
-    const W = []
-    const V = []
-    const kIdx = k - 1
+  // Initialiser les prédécesseurs comme des listes pour stocker plusieurs prédécesseurs possibles
+  const predecessors = Array.from({ length: nbrMatrice }, () =>
+    Array.from({ length: nbrMatrice }, () => [])
+  );
 
-    const verticesToK = []
-    for (let i = 1; i <= nbrMatrice; i++) {
-      const iIdx = i - 1
-      if (i !== k && currentMatrix[iIdx][kIdx] !== Infinity) {
-        verticesToK.push(i)
+  // Définir les prédécesseurs initiaux pour les arêtes directes
+  for (let i = 0; i < nbrMatrice; i++) {
+    for (let j = 0; j < nbrMatrice; j++) {
+      if (i !== j && currentMatrix[i][j] !== null && currentMatrix[i][j] !== Infinity) {
+        predecessors[i][j].push(i);
       }
     }
+  }
+  console.log("Initial predecessors:", predecessors);
 
-    const verticesFromK = []
-    for (let j = 1; j <= nbrMatrice; j++) {
-      const jIdx = j - 1
-      if (j !== k && currentMatrix[kIdx][jIdx] !== Infinity) {
-        verticesFromK.push(j)
-      }
-    }
+  steps.push({
+    k: 0,
+    W: [],
+    V: [],
+    matrix: matrice.map(row => [...row]),
+    description: "Matrice initiale"
+  });
 
-    for (const i of verticesToK) {
-      for (const j of verticesFromK) {
-        const iIdx = i - 1
-        const jIdx = j - 1
+  for (let k = 0; k < nbrMatrice; k++) {
+    const W = [];
+    const V = [];
 
-        const V_ik = currentMatrix[iIdx][kIdx]
-        const V_kj = currentMatrix[kIdx][jIdx]
-        let W_value
+    for (let i = 0; i < nbrMatrice; i++) {
+      for (let j = 0; j < nbrMatrice; j++) {
+        if (i === j || currentMatrix[i][k] === Infinity || currentMatrix[k][j] === Infinity) continue;
 
-        if (V_ik === Infinity || V_kj === Infinity) {
-          W_value = Infinity
-        } else {
-          W_value = V_ik + V_kj
-        }
+        const direct = currentMatrix[i][j] === null || currentMatrix[i][j] === Infinity ? -Infinity : currentMatrix[i][j];
+        const viaK = currentMatrix[i][k] + currentMatrix[k][j];
 
         W.push({
-          i,
-          j,
-          value: W_value,
-          formula: `W_${i}${j}^(${k-1}) = V_${i}${k}^(${k-1}) + V_${k}${j}^(${k-1}) = ${V_ik === Infinity ? "+∞" : V_ik} + ${V_kj === Infinity ? "+∞" : V_kj} = ${W_value === Infinity ? "+∞" : W_value}`
-        })
+          i: i + 1,
+          j: j + 1,
+          value: viaK,
+          formula: `W_${i + 1}${j + 1}^(${k + 1}) = V_${i + 1}${k + 1}^(${k + 1}) + V_${k + 1}${j + 1}^(${k + 1}) = ${currentMatrix[i][k]} + ${currentMatrix[k][j]} = ${viaK}`
+        });
 
-        const V_ij = currentMatrix[iIdx][jIdx]
-        const new_V_value = methode === "max" ? Math.max(W_value, V_ij) : Math.min(W_value, V_ij)
+        if (viaK > direct) {
+          currentMatrix[i][j] = viaK;
+          predecessors[i][j] = [...predecessors[k][j]];
+        } else if (viaK === direct && viaK !== -Infinity) {
+          predecessors[i][j] = [...new Set([...predecessors[i][j], ...predecessors[k][j]])];
+        }
 
         V.push({
-          i,
-          j,
-          value: new_V_value,
-          formula: `V_${i}${j}^(${k}) = ${methode === "max" ? "MAX" : "MIN"}(W_${i}${j}^(${k-1}), V_${i}${j}^(${k-1})) = ${methode === "max" ? "MAX" : "MIN"}(${W_value === Infinity ? "+∞" : W_value}, ${V_ij === Infinity ? "+∞" : V_ij}) = ${new_V_value === Infinity ? "+∞" : new_V_value}`
-        })
-
-        if ((methode === "max" && new_V_value > currentMatrix[iIdx][jIdx]) ||
-            (methode === "min" && new_V_value < currentMatrix[iIdx][jIdx])) {
-          currentMatrix[iIdx][jIdx] = new_V_value
-          predecessors[iIdx][jIdx] = predecessors[kIdx][jIdx]
-        }
+          i: i + 1,
+          j: j + 1,
+          value: currentMatrix[i][j],
+          formula: `V_${i + 1}${j + 1}^(${k + 1}) = MAX(W_${i + 1}${j + 1}^(${k + 1}), V_${i + 1}${j + 1}^(${k})) = MAX(${viaK}, ${direct === -Infinity ? "∞" : direct}) = ${currentMatrix[i][j] === Infinity ? "∞" : currentMatrix[i][j]}`
+        });
       }
     }
 
-    const matrixCopy = currentMatrix.map(row => [...row])
-    steps.push({ k, W, V, matrix: matrixCopy })
+    steps.push({
+      k: k + 1,
+      W,
+      V,
+      matrix: currentMatrix.map(row => [...row])
+    });
+    console.log(`Step ${k + 1} predecessors:`, predecessors);
   }
 
-  // Construire les chemins optimaux en partant de la dernière colonne
-  const optimalPaths = {}
+  // Fonction pour reconstruire les chemins optimaux
+  const getAllPaths = (start, current, path = [], visited = new Set()) => {
+    path = [...path, current];
 
-  const findOptimalPathFromLastColumn = () => {
-    const path = []
-    let currentCol = nbrMatrice - 1 // Dernière colonne
-
-    while (currentCol >= 0) {
-      let optimalValue = methode === "max" ? -Infinity : Infinity
-      let optimalRow = -1
-
-      // Chercher la valeur optimale dans la colonne actuelle
-      for (let i = 0; i < nbrMatrice; i++) {
-        if (i !== currentCol) {
-          const value = currentMatrix[i][currentCol]
-          if (methode === "max" && value > optimalValue && value !== Infinity) {
-            optimalValue = value
-            optimalRow = i
-          } else if (methode === "min" && value < optimalValue) {
-            optimalValue = value
-            optimalRow = i
-          }
-        }
-      }
-
-      if (optimalRow === -1 || optimalValue === Infinity) break
-      if (path.includes(optimalRow + 1)) break // Éviter les boucles
-
-      path.unshift(optimalRow + 1) // Ajouter le sommet au début du chemin
-      currentCol = optimalRow // Passer à la colonne correspondant à la ligne optimale
+    if (current === start) {
+      return [path.reverse().map(node => node + 1)];
     }
 
-    // Ajouter la dernière colonne au chemin
-    path.push(nbrMatrice)
-    return path
-  }
+    if (visited.has(current)) {
+      return [];
+    }
 
-  // Calculer le chemin optimal unique à partir de la dernière colonne
-  const optimalPath = findOptimalPathFromLastColumn()
-  if (optimalPath.length > 1) {
-    // Stocker le chemin dans optimalPaths avec la clé "1-n" (du premier au dernier sommet)
-    optimalPaths[`1-${nbrMatrice}`] = optimalPath
-  }
+    visited.add(current);
+
+    const paths = [];
+    const preds = predecessors[start][current];
+
+    console.log(`Exploring paths from ${start + 1} to ${current + 1}, predecessors:`, preds);
+
+    for (const pred of preds) {
+      const subPaths = getAllPaths(start, pred, path, new Set(visited));
+      paths.push(...subPaths);
+    }
+
+    return paths;
+  };
+
+  const optimalPaths = {};
+  // for (let start = 0; start < nbrMatrice; start++) {
+  let start = 0;
+    for (let end = 0; end < nbrMatrice; end++) {
+      if (start !== end && currentMatrix[start][end] !== Infinity) {
+        const paths = getAllPaths(start, end);
+        if (paths.length > 0 && end === nbrMatrice-1) {
+          optimalPaths[`${start + 1}-${end + 1}`] = paths;
+        }
+      }
+    }
+  // }
+  console.log("Final optimalPaths:", optimalPaths);
 
   return {
     steps,
     finalMatrix: currentMatrix,
     predecessors,
-    optimalPaths
-  }
+    optimalPaths,
+    method: methode
+  };
 }

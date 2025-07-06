@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (GraphCreateView, GraphListView, GraphDetailView, AddSommetView, AddArcView, RunDemoucronView, MatrixDemoucronView,
-    DeleteSommetView, DeleteArcView)
+    DeleteSommetView, DeleteArcView, GraphDeleteView)
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
@@ -32,6 +32,7 @@ urlpatterns = [
     path('graphs/', GraphListView.as_view(), name='graph-list'),
     path('graphs/create/', GraphCreateView.as_view(), name='graph-create'),
     path('graphs/<int:graph_id>/', GraphDetailView.as_view(), name='graph-detail'),
+    path('graphs/<int:graph_id>/supprimer/', GraphDeleteView.as_view(), name='graph-suppression'),
     path('graphs/<int:graph_id>/add_sommet/', AddSommetView.as_view(), name='add-sommet'),
     path('graphs/<int:graph_id>/add_arc/', AddArcView.as_view(), name='add-arc'),
     path('graphs/<int:graph_id>/run_demoucron/', RunDemoucronView.as_view(), name='run-demoucron'),

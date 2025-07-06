@@ -10,12 +10,12 @@ import CustomNode from "./CustomNode.jsx"
 import CustomEdgeComponent from "./CustomEdge.jsx"
 
 const edgeTypes = {
-  custom: CustomEdgeComponent, // Utiliser le même composant que les autres graphiques
-}
+  custom: CustomEdgeComponent,
+};
 
 const nodeTypes = {
   custom: CustomNode,
-}
+};
 
 function MatrixDisplay({ matrix, nodeNames, title, optimalPaths = {} }) {
   if (!matrix || !nodeNames) {
@@ -25,16 +25,18 @@ function MatrixDisplay({ matrix, nodeNames, title, optimalPaths = {} }) {
   const isOptimalValue = Array(matrix.length)
     .fill()
     .map(() => Array(matrix.length).fill(false))
-  Object.entries(optimalPaths).forEach(([_, path]) => {
-    if (path && path.length > 1) {
-      for (let k = 0; k < path.length - 1; k++) {
-        const i = path[k] - 1
-        const j = path[k + 1] - 1
-        if (i >= 0 && j >= 0 && i < matrix.length && j < matrix.length) {
-          isOptimalValue[i][j] = true
+  Object.entries(optimalPaths).forEach(([_, paths]) => {
+    paths.forEach((path) => {
+      if (path && path.length > 1) {
+        for (let k = 0; k < path.length - 1; k++) {
+          const i = path[k] - 1
+          const j = path[k + 1] - 1
+          if (i >= 0 && j >= 0 && i < matrix.length && j < matrix.length) {
+            isOptimalValue[i][j] = true
+          }
         }
       }
-    }
+    })
   })
 
   return (
@@ -95,86 +97,64 @@ function CalculationsDisplay({ calculations, type, method }) {
 }
 
 function OptimalPathGraph({ optimalPaths, nodes, nodeNames, finalMatrix, theme }) {
-  const [graphNodes, setGraphNodes, onNodesChange] = useNodesState([])
-  const [graphEdges, setGraphEdges, onEdgesChange] = useEdgesState([])
+  const [graphNodes, setGraphNodes, onNodesChange] = useNodesState([]);
+  const [graphEdges, setGraphEdges, onEdgesChange] = useEdgesState([]);
 
-  const themeConfig = useMemo(
-    () => ({
-      light: {
-        background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
-        nodeNormal: "linear-gradient(135deg, #3b82f6, #2563eb)",
-        edgeColor: "#475569",
-        optimalEdgeColor: "#f97316",
-        shadowNormal: "0 8px 25px rgba(59, 130, 246, 0.3)",
-      },
-      dark: {
-        background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-        nodeNormal: "linear-gradient(135deg, #3b82f6, #2563eb)",
-        edgeColor: "#94a3b8",
-        optimalEdgeColor: "#f97316",
-        shadowNormal: "0 8px 25px rgba(59, 130, 246, 0.4)",
-      },
-    }),
-    [],
-  )
+  const themeConfig = useMemo(() => ({
+    light: {
+      background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+      nodeNormal: "linear-gradient(135deg, #3b82f6, #2563eb)",
+      edgeColor: "#475569",
+      shadowNormal: "0 8px 25px rgba(59, 130, 246, 0.3)",
+    },
+    dark: {
+      background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+      nodeNormal: "linear-gradient(135deg, #3b82f6, #2563eb)",
+      edgeColor: "#94a3b8",
+      shadowNormal: "0 8px 25px rgba(59, 130, 246, 0.4)",
+    },
+  }), []);
 
-  const currentTheme = themeConfig[theme] || themeConfig.light
+  const currentTheme = themeConfig[theme] || themeConfig.light;
+
+  const pathColors = ['#f97316', '#10b981', '#8b5cf6', '#ef4444', '#3b82f6', '#eab308', '#14b8a6', '#ec4899'];
 
   React.useEffect(() => {
     if (!nodeNames || !finalMatrix) {
-      setGraphNodes([])
-      setGraphEdges([])
-      return
+      console.log("nodeNames ou finalMatrix manquant, réinitialisation des nœuds et arêtes");
+      setGraphNodes([]);
+      setGraphEdges([]);
+      return;
     }
 
-    const rfNodes = []
-    const rfEdges = []
+    const rfNodes = [];
+    const rfEdges = [];
 
-    // Positionnement en cercle comme WijGraph
-    const centerX = 300
-    const centerY = 250
-    const radius = Math.min(150, 50 + nodeNames.length * 20)
+    // Positionnement circulaire des nœuds
+    const centerX = 300;
+    const centerY = 250;
+    const radius = Math.min(150, 50 + nodeNames.length * 20);
 
-    // Ajouter tous les nœuds du graphe
     nodeNames.forEach((name, index) => {
-      const angle = (2 * Math.PI * index) / nodeNames.length
-      const x = centerX + radius * Math.cos(angle)
-      const y = centerY + radius * Math.sin(angle)
+      const angle = (2 * Math.PI * index) / nodeNames.length;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
 
       rfNodes.push({
         id: `node-${index}`,
         type: "custom",
-        data: {
-          label: name,
-          type: "normal",
-        },
+        data: { label: name, type: "normal" },
         position: { x, y },
         draggable: true,
-      })
-    })
+      });
+    });
 
-    // Ajouter toutes les arêtes du graphe depuis la matrice finale
+    // Ajouter toutes les arêtes de la matrice finale
     if (finalMatrix && Array.isArray(finalMatrix)) {
       finalMatrix.forEach((row, i) => {
         if (row && Array.isArray(row)) {
           row.forEach((value, j) => {
             if (value !== Number.POSITIVE_INFINITY && i !== j && value !== null && !isNaN(value)) {
-              // Vérifier si cette arête fait partie d'un chemin optimal
-              let isOptimal = false
-              // Vérifier que optimalPaths existe et est un objet avant de l'utiliser
-              if (optimalPaths && typeof optimalPaths === "object") {
-                Object.entries(optimalPaths).forEach(([key, path]) => {
-                  if (path && Array.isArray(path) && path.length > 1) {
-                    for (let k = 0; k < path.length - 1; k++) {
-                      if (path[k] - 1 === i && path[k + 1] - 1 === j) {
-                        isOptimal = true
-                        break
-                      }
-                    }
-                  }
-                })
-              }
-
               rfEdges.push({
                 id: `edge-${i}-${j}`,
                 source: `node-${i}`,
@@ -182,28 +162,73 @@ function OptimalPathGraph({ optimalPaths, nodes, nodeNames, finalMatrix, theme }
                 label: `${value}`,
                 type: "custom",
                 style: {
-                  stroke: isOptimal ? currentTheme.optimalEdgeColor : currentTheme.edgeColor,
-                  strokeWidth: isOptimal ? 3.5 : 2.5,
+                  stroke: currentTheme.edgeColor,
+                  strokeWidth: 2.5,
                   strokeLinecap: "round",
                   strokeLinejoin: "round",
                 },
                 markerEnd: {
                   type: "arrowclosed",
-                  color: isOptimal ? currentTheme.optimalEdgeColor : currentTheme.edgeColor,
+                  color: currentTheme.edgeColor,
                   width: 20,
                   height: 20,
                 },
-                animated: isOptimal,
-              })
+                animated: false,
+              });
             }
-          })
+          });
         }
-      })
+      });
     }
 
-    setGraphNodes(rfNodes)
-    setGraphEdges(rfEdges)
-  }, [nodeNames, finalMatrix, optimalPaths, theme, currentTheme, setGraphNodes, setGraphEdges])
+    console.log("Edges générées:", rfEdges);
+
+    // Colorer chaque chemin optimal différemment
+    if (optimalPaths && typeof optimalPaths === "object") {
+      let colorIndex = 0;
+      Object.entries(optimalPaths).forEach(([key, paths]) => {
+        if (Array.isArray(paths)) {
+          paths.forEach((path) => {
+            if (path && Array.isArray(path) && path.length > 1) {
+              const color = pathColors[colorIndex % pathColors.length];
+              colorIndex++;
+
+              for (let k = 0; k < path.length - 1; k++) {
+                const i = path[k] - 1;
+                const j = path[k + 1] - 1;
+                const edgeId = `edge-${i}-${j}`;
+                const edgeIndex = rfEdges.findIndex(edge => edge.id === edgeId);
+
+                if (edgeIndex !== -1) {
+                  rfEdges[edgeIndex] = {
+                    ...rfEdges[edgeIndex],
+                    style: {
+                      stroke: color,
+                      strokeWidth: 3.5,
+                      strokeLinecap: "round",
+                      strokeLinejoin: "round",
+                    },
+                    markerEnd: {
+                      type: "arrowclosed",
+                      color: color,
+                      width: 20,
+                      height: 20,
+                    },
+                    animated: true,
+                  };
+                } else {
+                  console.warn(`Arête non trouvée pour ${edgeId}`);
+                }
+              }
+            }
+          });
+        }
+      });
+    }
+
+    setGraphNodes(rfNodes);
+    setGraphEdges(rfEdges);
+  }, [nodeNames, finalMatrix, optimalPaths, theme, currentTheme, setGraphNodes, setGraphEdges]);
 
   return (
     <div className="optimal-path-graph">
@@ -245,17 +270,15 @@ function OptimalPathGraph({ optimalPaths, nodes, nodeNames, finalMatrix, theme }
         </div>
       )}
     </div>
-  )
+  );
 }
 
-// Le reste du composant ResultsDisplay reste identique...
 function ResultsDisplay({ results, theme, nodes, nodeNames }) {
-  
-  const [expandedSteps, setExpandedSteps] = useState({})
-  const [activeTab, setActiveTab] = useState("steps")
+  const [expandedSteps, setExpandedSteps] = useState({});
+  const [activeTab, setActiveTab] = useState("steps");
 
   if (!results || results.error) {
-    const error = results?.error || "Aucun résultat disponible"
+    const error = results?.error || "Aucun résultat disponible";
     return (
       <div className="results-error">
         <div className="error-icon">
@@ -271,14 +294,17 @@ function ResultsDisplay({ results, theme, nodes, nodeNames }) {
         <h3>Erreur de calcul</h3>
         <p>{error}</p>
       </div>
-    )
+    );
   }
-  console.log(results)
-  const { steps, finalMatrix, optimalPaths, method } = results
+
+  const { steps, finalMatrix, optimalPaths, method } = results;
 
   const toggleStep = (index) => {
-    setExpandedSteps((prev) => ({ ...prev, [index]: !prev[index] }))
-  }
+    setExpandedSteps((prev) => ({ ...prev, [index]: !prev[index] }));
+  };
+
+  // Calculer le nombre total de chemins optimaux
+  const totalPaths = Object.values(optimalPaths).reduce((acc, paths) => acc + paths.length, 0);
 
   return (
     <div className="results-display">
@@ -289,7 +315,7 @@ function ResultsDisplay({ results, theme, nodes, nodeNames }) {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
             />
           </svg>
         </div>
@@ -326,7 +352,7 @@ function ResultsDisplay({ results, theme, nodes, nodeNames }) {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M13.828 10.172a4 0 00-5.656 0l-4 4a4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 0 005.5 0l4-4a4 0 00-5.656-5.656l-1.1 1.1"
+              d="M13.828 10.172a4 0 00-5.656 0l-4 4a4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 0 005.656 0l4-4a4 0 00-5.656-5.656l-1.1 1.1"
             />
           </svg>
           Chemins Optimaux
@@ -394,7 +420,7 @@ function ResultsDisplay({ results, theme, nodes, nodeNames }) {
                                   currentMatrix={step.matrix}
                                   stepIndex={index}
                                   nodes={nodes}
-                                  nodeNames={nodeNames} // Passer nodeNames à WijGraph
+                                  nodeNames={nodeNames}
                                 />
                               </div>
                             )}
@@ -448,6 +474,7 @@ function ResultsDisplay({ results, theme, nodes, nodeNames }) {
                 <p>
                   Meilleurs chemins trouvés selon la méthode de {method === "min" ? "minimisation" : "maximisation"}
                 </p>
+                <p>Nombre total de chemins optimaux trouvés : {totalPaths}</p>
               </div>
               <OptimalPathGraph
                 optimalPaths={optimalPaths}
@@ -456,12 +483,27 @@ function ResultsDisplay({ results, theme, nodes, nodeNames }) {
                 finalMatrix={finalMatrix}
                 theme={theme}
               />
+              <div className="paths-list">
+                <h4>Liste des Chemins Optimaux</h4>
+                {Object.entries(optimalPaths).map(([key, paths]) => (
+                  <div key={key}>
+                    <p><strong>{key.replace('-', ' → ')} :</strong></p>
+                    <ul>
+                      {paths.map((path, index) => (
+                        <li key={index}>
+                          {path.map(node => nodeNames[node - 1]).join(' → ')}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }
 
-export default ResultsDisplay
+export default ResultsDisplay;
